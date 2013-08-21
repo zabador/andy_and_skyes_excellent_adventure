@@ -1,11 +1,9 @@
 package com.zabador.entities;
 
-import java.awt.event.KeyEvent;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
 
-import javax.swing.ImageIcon;
 
 import java.net.URL;
 

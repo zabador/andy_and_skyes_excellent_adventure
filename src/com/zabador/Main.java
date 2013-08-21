@@ -5,10 +5,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.awt.image.*;
-import java.util.*;
 
 import com.zabador.entities.Hero;
 
+@SuppressWarnings("serial")
 public class Main extends Applet implements Runnable, KeyListener {
 
     //the main thread becomes the game loop
@@ -58,7 +58,7 @@ public class Main extends Applet implements Runnable, KeyListener {
 
     public void start() {
 
-		//create the gameloop thread for real-time updates
+        //create the gameloop thread for real-time updates
         gameloop = new Thread(this);
         gameloop.start();
     }
@@ -89,7 +89,7 @@ public class Main extends Applet implements Runnable, KeyListener {
      *****************************************************/
     public void stop() {
 
-		//kill the gameloop thread
+        //kill the gameloop thread
         gameloop = null;
     }
 
