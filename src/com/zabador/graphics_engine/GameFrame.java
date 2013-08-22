@@ -74,6 +74,8 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
             g2d.drawImage(background.getImage(), 0, 0, screenWidth - 1,
                     screenHeight - 1, this);
             g2d.drawString("FPS: " + frameRate, 5,10);
+            g2d.drawString("x: " + hero.position().x, 5,20);
+            g2d.drawString("y: " + hero.position().y, 5,30);
 
             hero.transform();
             hero.draw();
@@ -94,7 +96,23 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
     }
 
     private void updateHero() {
-        hero.updatePosition();
+        Point center = hero.center();
+        int x = center.x;
+        int y = center.y;
+        int width = hero.imageWidth();
+        int height = hero.imageHeight();
+
+        if(x - width/2 < 0)
+            hero.setVelocity(new Point(width/2,hero.position().y));
+        else if(x + width > screenWidth)
+            hero.setPosition(new Point(screenWidth - width +2, hero.position().y));
+        else if(y - height/2 < 0)
+            hero.setPosition(new Point(hero.position().x, height/2));
+        else if(y + height/2 > screenHeight) 
+            hero.setPosition(new Point(hero.position().x, screenHeight - height/2));
+        else
+            hero.updatePosition();
+
         hero.setState(SPRITE_NORMAL);
     }
 
