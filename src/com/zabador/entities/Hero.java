@@ -7,12 +7,14 @@ import java.awt.Toolkit;
 
 import java.net.URL;
 
+import javax.swing.JFrame;
+
 public class Hero extends Entity {
 
     private int velX = 0, velY = 0;
 
-    public Hero(int x, int y) {
-        super(x,y);
+    public Hero(JFrame a, Graphics2D g2d) {
+        super(a, g2d);
     }
 
     public void update() {

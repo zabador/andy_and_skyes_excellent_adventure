@@ -2,15 +2,15 @@ package com.zabador.entities;
 
 import java.awt.Graphics2D;
 
-import java.net.URL;
 
-public class Entity {
+import javax.swing.JFrame;
+
+public class Entity extends Sprite {
 
     int x, y;
 
-    public Entity(int x, int y) {
-        this.x = x;
-        this.y = y;
+    public Entity(JFrame a, Graphics2D g2d) {
+        super(a,g2d);
     }
 
     public void update() {
