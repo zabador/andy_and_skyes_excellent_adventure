@@ -15,6 +15,8 @@ import java.util.*;
 public class GameFrame extends JFrame implements Runnable, KeyListener {
     int screenWidth = 800;
     int screenHeight = 600;
+    int frameCount = 0, frameRate = 0;
+    Long startTime;
 
     static int SPRITE_NORMAL = 0;
     static int SPRITE_COLLIDED = 1;
@@ -50,8 +52,9 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
         //load the asteroid sprite
         hero = new Hero(this, g2d);
         hero.load("/images/player.png");
-        Point point = new Point(0, 0);
+        Point point = new Point(100, 100);
         hero.setPosition(point);
+        startTime = System.currentTimeMillis();
 
         gameloop = new Thread(this);
         gameloop.start();
@@ -61,7 +64,7 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
         Thread t = Thread.currentThread();
         while (t == gameloop) {
             try {
-                Thread.sleep(20);
+                Thread.sleep(15);
                 gameUpdate();
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -70,6 +73,7 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
             //draw the background
             g2d.drawImage(background.getImage(), 0, 0, screenWidth - 1,
                     screenHeight - 1, this);
+            g2d.drawString("FPS: " + frameRate, 5,10);
 
             hero.transform();
             hero.draw();
@@ -79,6 +83,12 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
     }
 
     private void gameUpdate() {
+        frameCount++;
+        if(System.currentTimeMillis() > startTime + 1000) {
+            startTime = System.currentTimeMillis();
+            frameRate = frameCount;
+            frameCount = 0;
+        }
         checkInput();
         updateHero();
     }
