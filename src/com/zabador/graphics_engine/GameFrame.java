@@ -96,23 +96,8 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
     }
 
     private void updateHero() {
-        Point center = hero.center();
-        int x = center.x;
-        int y = center.y;
-        int width = hero.imageWidth();
-        int height = hero.imageHeight();
 
-        if(x - width/2 < 0)
-            hero.setVelocity(new Point(width/2,hero.position().y));
-        else if(x + width > screenWidth)
-            hero.setPosition(new Point(screenWidth - width +2, hero.position().y));
-        else if(y - height/2 < 0)
-            hero.setPosition(new Point(hero.position().x, height/2));
-        else if(y + height/2 > screenHeight) 
-            hero.setPosition(new Point(hero.position().x, screenHeight - height/2));
-        else
-            hero.updatePosition();
-
+        hero.updatePosition();
         hero.setState(SPRITE_NORMAL);
     }
 
@@ -122,17 +107,55 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
     }
 
     public void checkInput() {
+
+        Point center = hero.center();
+        int x = center.x;
+        int y = center.y;
+        int width = hero.imageWidth();
+        int height = hero.imageHeight();
+
         if (keyUP) {
-            hero.setVelocity(new Point(0,-2));
+            if(y - height/2 > 0) {
+                System.out.println("up");
+                hero.setVelocity(new Point(0,-2));
+            }
+            else {
+                System.out.println("else up");
+                hero.setVelocity(new Point(0,0));
+            }
         }
         else if (keyDOWN) {
-            hero.setVelocity(new Point(0,2));
+            if(y + height/2 < screenHeight) {
+                System.out.println("down");
+                hero.setVelocity(new Point(0,2));
+            }
+            else {
+                System.out.println("else down");
+                hero.setVelocity(new Point(0,0));
+            }
         }
         else if (keyLEFT) {
-            hero.setVelocity(new Point(-2,0));
+            if(x - width/2 > 0) {
+                System.out.println("left");
+                hero.setVelocity(new Point(-2,0));
+            }
+            else {
+                System.out.println("else left");
+                hero.setVelocity(new Point(0,0));
+            }
+
         }
         else if (keyRIGHT) {
-            hero.setVelocity(new Point(2,0));
+            double here = x - width/2;
+            System.out.println(here);
+            if(x + width < screenWidth) {
+                System.out.println("right");
+                hero.setVelocity(new Point(2,0));
+            }
+            else{
+                System.out.println("else right");
+                hero.setVelocity(new Point(0,0));
+            }
         }
         else hero.setVelocity(new Point(0,0));
     }
