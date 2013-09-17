@@ -65,6 +65,7 @@ public class Player extends Sprite implements InputProcessor {
 		upAnimation = new Animation(0.3f, upWalkFrames);
 		downAnimation = new Animation(0.3f, downWalkFrames);
 		stateTime = 0f;
+		currentFrame = downAnimation.getKeyFrame(stateTime, true);
 	}
 	
 	@Override
@@ -80,10 +81,9 @@ public class Player extends Sprite implements InputProcessor {
 			currentFrame = leftAnimation.getKeyFrame(stateTime, true);
 		else if(right)
 			currentFrame = rightAnimation.getKeyFrame(stateTime, true);
-		else
-			currentFrame = downAnimation.getKeyFrame(stateTime, true);
+
 		
-		if(moving)
+		if(up || down || left || right)
 			stateTime += Gdx.graphics.getDeltaTime();
 			
 		spriteBatch.draw(currentFrame, getX(), getY());
@@ -163,7 +163,6 @@ public class Player extends Sprite implements InputProcessor {
 		switch (keycode) {
 		case Keys.W:
 		case Keys.UP:
-			moving = true;
 			up = true;
 			down = false;
 			left = false;
@@ -172,7 +171,6 @@ public class Player extends Sprite implements InputProcessor {
 			break;
 		case Keys.S:
 		case Keys.DOWN:
-			moving = true;
 			up = false;
 			down = true;
 			left = false;
@@ -181,7 +179,6 @@ public class Player extends Sprite implements InputProcessor {
 			break;
 		case Keys.A:
 		case Keys.LEFT:
-			moving = true;
 			up = false;
 			down = false;
 			left = true;
@@ -190,7 +187,6 @@ public class Player extends Sprite implements InputProcessor {
 			break;
 		case Keys.D:
 		case Keys.RIGHT:
-			moving = true;
 			up = false;
 			down = false;
 			left = false;
@@ -209,16 +205,22 @@ public class Player extends Sprite implements InputProcessor {
 		switch (keycode) {
 		case Keys.W:
 		case Keys.UP:
+			velocity.y = 0;
+			up = false;
+			break;
 		case Keys.S:
 		case Keys.DOWN:
+			down = false;
 			velocity.y = 0;
-			moving = false;
 			break;
 		case Keys.A:
 		case Keys.LEFT:
+			velocity.x = 0;
+			left = false;
+			break;
 		case Keys.D:
 		case Keys.RIGHT:
-			moving = false;
+			right = false;
 			velocity.x = 0;
 			break;
 
