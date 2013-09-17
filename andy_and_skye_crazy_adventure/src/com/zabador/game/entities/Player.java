@@ -238,17 +238,35 @@ public class Player extends Sprite implements InputProcessor {
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-		if(screenX < 100)
+		if(screenX < 200) {
 			velocity.x = -speed;
-		else if(screenX > Gdx.graphics.getWidth()-100)
+			left = true;
+		}
+		else if(screenX > Gdx.graphics.getWidth()-200){
 			velocity.x = speed;
+			right = true;
+		}
+		else if(screenY < 200) {
+			velocity.y = speed;
+			down = true;
+		}
+		else if(screenY > Gdx.graphics.getHeight()-200){
+			velocity.y = -speed;
+			up = true;
+		}
 		return true;
 	}
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
 		velocity.x = 0;
-		return false;
+		velocity.y = 0;
+		left = false;
+		right = false;
+		up = false;
+		down = false;
+		
+		return true;
 	}
 
 	@Override
