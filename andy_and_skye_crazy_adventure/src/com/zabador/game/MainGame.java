@@ -1,7 +1,9 @@
 package com.zabador.game;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.graphics.Texture;
 import com.zabador.game.screen.Play;
+import com.zabador.game.screen.Splash;
 
 public class MainGame extends Game {
 	
@@ -9,6 +11,7 @@ public class MainGame extends Game {
 	@Override
 	public void create() {		
 		setScreen(new Play());
+		Texture.setEnforcePotImages(false);
 	}
 
 	@Override

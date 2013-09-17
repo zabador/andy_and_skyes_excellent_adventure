@@ -26,6 +26,7 @@ public class Play implements Screen {
         
         renderer.setView(camera);
         renderer.render();
+
         
         camera.position.set(player.getX() + player.getWidth() / 2, player.getY() + player.getHeight() / 2, 0);
         camera.update();
@@ -44,7 +45,7 @@ public class Play implements Screen {
     }
     @Override
     public void show() {
-        map = new TmxMapLoader().load("maps/maps.tmx");
+        map = new TmxMapLoader().load("maps/mountains.tmx");
         
         renderer = new OrthogonalTiledMapRenderer(map);
         
@@ -52,7 +53,7 @@ public class Play implements Screen {
         //camera.zoom = .5f;
     
         player = new Player(new Sprite(new Texture("imgs/player.png")), (TiledMapTileLayer) map.getLayers().get(0));
-        player.setPosition(46 * player.getCollisionLayer().getTileWidth(), 90 * player.getCollisionLayer().getTileHeight());
+        player.setPosition(46 * player.getCollisionLayer().getTileWidth(), 10 * player.getCollisionLayer().getTileHeight());
 
         // tell game where the input processor is
         Gdx.input.setInputProcessor(player);

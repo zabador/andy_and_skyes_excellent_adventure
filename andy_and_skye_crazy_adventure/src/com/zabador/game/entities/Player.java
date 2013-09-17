@@ -3,8 +3,11 @@ package com.zabador.game.entities;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Vector2;
 import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
@@ -13,6 +16,17 @@ public class Player extends Sprite implements InputProcessor {
 	
 	// movement velocity
 	private Vector2 velocity = new Vector2();
+
+	// the number of rows and col in the player sprite sheet
+	private final int FRAME_COLS = 3, FRAME_ROWS = 4;
+
+	private Animation leftAnimation, rightAnimation, upAnimation, downAnimation;
+	private Texture walkSheet;
+	private TextureRegion[] leftWalkFrames, rightWalkFrames, upWalkFrames, downWalkFrames;
+	private TextureRegion currentFrame;
+	private boolean left, right, up, down, moving;
+
+	private float stateTime;
 	
 	private float speed = 60 * 2;
 	
@@ -20,13 +34,60 @@ public class Player extends Sprite implements InputProcessor {
 	
 	public Player(Sprite sprite, TiledMapTileLayer collisionLayer) {
 		super(sprite);
+		Texture.setEnforcePotImages(false);
 		this.collisionLayer = collisionLayer;
+		walkSheet = new Texture(Gdx.files.internal("imgs/figure_sheet.png"));
+		TextureRegion[][] tmp = TextureRegion.split(walkSheet, walkSheet.getWidth() / FRAME_COLS, walkSheet.getHeight() / FRAME_ROWS);
+		leftWalkFrames = new TextureRegion[FRAME_COLS];
+		rightWalkFrames = new TextureRegion[FRAME_COLS];
+		upWalkFrames = new TextureRegion[FRAME_COLS];
+		downWalkFrames = new TextureRegion[FRAME_COLS];
+
+		// load the sprites for each direction
+		int index = 0;
+		for (int i = 0; i<FRAME_ROWS; i++) {
+			for (int j=0; j<FRAME_COLS; j++) {
+				if(i==0)
+					upWalkFrames[index++] = tmp[i][j];
+				else if (i == 1)
+					rightWalkFrames[index++] = tmp[i][j];
+				else if (i == 2)
+					downWalkFrames[index++] = tmp[i][j];
+				else if (i == 3)
+					leftWalkFrames[index++] = tmp[i][j];
+			}
+			index = 0;
+		}
+
+		// set the animation with the correct direction frames
+		leftAnimation = new Animation(0.3f, leftWalkFrames);
+		rightAnimation = new Animation(0.3f, rightWalkFrames);
+		upAnimation = new Animation(0.3f, upWalkFrames);
+		downAnimation = new Animation(0.3f, downWalkFrames);
+		stateTime = 0f;
 	}
 	
 	@Override
 	public void draw(SpriteBatch spriteBatch) {
 		update(Gdx.graphics.getDeltaTime());
-		super.draw(spriteBatch);
+
+		// get the correct facing direction
+		if(up)
+			currentFrame = upAnimation.getKeyFrame(stateTime, true);
+		else if(down)
+			currentFrame = downAnimation.getKeyFrame(stateTime, true);
+		else if(left)
+			currentFrame = leftAnimation.getKeyFrame(stateTime, true);
+		else if(right)
+			currentFrame = rightAnimation.getKeyFrame(stateTime, true);
+		else
+			currentFrame = downAnimation.getKeyFrame(stateTime, true);
+		
+		if(moving)
+			stateTime += Gdx.graphics.getDeltaTime();
+			
+		spriteBatch.draw(currentFrame, getX(), getY());
+//		super.draw(spriteBatch);
 	}
 	
 	public void update(float delta) {
@@ -102,18 +163,38 @@ public class Player extends Sprite implements InputProcessor {
 		switch (keycode) {
 		case Keys.W:
 		case Keys.UP:
+			moving = true;
+			up = true;
+			down = false;
+			left = false;
+			right = false;
 			velocity.y = speed;
 			break;
 		case Keys.S:
 		case Keys.DOWN:
+			moving = true;
+			up = false;
+			down = true;
+			left = false;
+			right = false;
 			velocity.y = -speed;
 			break;
 		case Keys.A:
 		case Keys.LEFT:
+			moving = true;
+			up = false;
+			down = false;
+			left = true;
+			right = false;
 			velocity.x = -speed;
 			break;
 		case Keys.D:
 		case Keys.RIGHT:
+			moving = true;
+			up = false;
+			down = false;
+			left = false;
+			right = true;
 			velocity.x = speed;
 			break;
 
@@ -131,11 +212,13 @@ public class Player extends Sprite implements InputProcessor {
 		case Keys.S:
 		case Keys.DOWN:
 			velocity.y = 0;
+			moving = false;
 			break;
 		case Keys.A:
 		case Keys.LEFT:
 		case Keys.D:
 		case Keys.RIGHT:
+			moving = false;
 			velocity.x = 0;
 			break;
 
@@ -153,13 +236,16 @@ public class Player extends Sprite implements InputProcessor {
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-		// TODO Auto-generated method stub
-		return false;
+		if(screenX < 100)
+			velocity.x = -speed;
+		else if(screenX > Gdx.graphics.getWidth()-100)
+			velocity.x = speed;
+		return true;
 	}
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		// TODO Auto-generated method stub
+		velocity.x = 0;
 		return false;
 	}
 
