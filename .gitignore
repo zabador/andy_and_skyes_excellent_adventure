@@ -7,3 +7,6 @@
 
 # Bin Files #
 bin/*
+
+#log files
+*.log
