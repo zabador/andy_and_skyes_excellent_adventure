@@ -26,6 +26,12 @@ public class Player extends Sprite implements InputProcessor {
 	private TextureRegion currentFrame;
 	private boolean left, right, up, down, moving;
 
+	// asign the correct rows for each direction
+	private final int UP_ROW = 0;	
+	private final int DOWN_ROW = 2;	
+	private final int RIGHT_ROW = 1;	
+	private final int LEFT_ROW = 3;	
+
 	private float stateTime;
 	
 	private float speed = 60 * 2;
@@ -33,8 +39,11 @@ public class Player extends Sprite implements InputProcessor {
 	private TiledMapTileLayer collisionLayer;
 	
 	public Player(Sprite sprite, TiledMapTileLayer collisionLayer) {
+
 		super(sprite);
-		Texture.setEnforcePotImages(false);
+
+		Texture.setEnforcePotImages(false); // sprite sheets do not need to have dimensions of Power Of Two anymore
+
 		this.collisionLayer = collisionLayer;
 		walkSheet = new Texture(Gdx.files.internal("imgs/figure_sheet.png"));
 		TextureRegion[][] tmp = TextureRegion.split(walkSheet, walkSheet.getWidth() / FRAME_COLS, walkSheet.getHeight() / FRAME_ROWS);
@@ -47,13 +56,13 @@ public class Player extends Sprite implements InputProcessor {
 		int index = 0;
 		for (int i = 0; i<FRAME_ROWS; i++) {
 			for (int j=0; j<FRAME_COLS; j++) {
-				if(i==0)
+				if(i == UP_ROW)
 					upWalkFrames[index++] = tmp[i][j];
-				else if (i == 1)
+				else if (i == RIGHT_ROW)
 					rightWalkFrames[index++] = tmp[i][j];
-				else if (i == 2)
+				else if (i == DOWN_ROW)
 					downWalkFrames[index++] = tmp[i][j];
-				else if (i == 3)
+				else if (i == LEFT_ROW)
 					leftWalkFrames[index++] = tmp[i][j];
 			}
 			index = 0;
