@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="andy_and_skye_crazy_adventure-android/gen"/>
+	<classpathentry kind="src" path="andy_and_skye_crazy_adventure-android/src"/>
+	<classpathentry kind="src" path="andy_and_skye_crazy_adventure-desktop/src"/>
+	<classpathentry kind="src" path="andy_and_skye_crazy_adventure/src"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure-android/bin/dexedLibs/annotations-6909387700926524614a6665624e3894.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure-android/bin/dexedLibs/bodyeditor-loader-45c1cf6e8c334f4618a838278a34c52c.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure-android/bin/dexedLibs/gdx-451b9dfb16f51ab7e6ab05a11bb6f3ed.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure-android/bin/dexedLibs/gdx-backend-android-c516594e5b275d14f3399fe02500bda6.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure-android/bin/dexedLibs/gdx-backend-android-sources-61461b898b3866c262ff1cfeebb4f0a8.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure-android/bin/dexedLibs/tween-engine-api-b0f96ddea43e3aeb90028654dfe09557.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure-android/libs/gdx-backend-android-sources.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure-android/libs/gdx-backend-android.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure-desktop/libs/gdx-backend-lwjgl-natives.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure-desktop/libs/gdx-backend-lwjgl-sources.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure-desktop/libs/gdx-backend-lwjgl.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure-desktop/libs/gdx-natives.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure/libs/bodyeditor-loader-sources.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure/libs/bodyeditor-loader.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure/libs/gdx-sources.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure/libs/gdx.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure/libs/tween-engine-api-sources.jar"/>
+	<classpathentry kind="lib" path="andy_and_skye_crazy_adventure/libs/tween-engine-api.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="andy_and_skye_crazy_adventure-desktop/bin"/>
+</classpath>

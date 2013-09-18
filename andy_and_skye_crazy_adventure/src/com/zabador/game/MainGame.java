@@ -10,8 +10,8 @@ public class MainGame extends Game {
 	
 	@Override
 	public void create() {		
-		setScreen(new Play());
 		Texture.setEnforcePotImages(false);
+		setScreen(new Splash());
 	}
 
 	@Override
