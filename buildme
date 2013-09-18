@@ -1,4 +1,4 @@
-
+cp -r andy_and_skye_crazy_adventure-android/assets/* andy_and_skye_crazy_adventure-desktop/bin &&
 
 javac -classpath "andy_and_skye_crazy_adventure/libs/*:andy_and_skye_crazy_adventure-desktop/libs/*:andy_and_skye_crazy_adventure-desktop/bin/classes" -sourcepath andy_and_skye_crazy_adventure-desktop/src:andy_and_skye_crazy_adventure/src -d andy_and_skye_crazy_adventure-desktop/bin andy_and_skye_crazy_adventure/src/com/zabador/game/*.java andy_and_skye_crazy_adventure-desktop/src/com/zabador/game/*.java && 
 
