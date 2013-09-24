@@ -34,7 +34,7 @@ public class Player extends Sprite implements InputProcessor {
 
     private float stateTime;
 
-    private float speed = 60 * 2;
+    private float speed = 60 * 3;
 
     private TiledMapTileLayer collisionLayer;
 
@@ -174,32 +174,20 @@ public class Player extends Sprite implements InputProcessor {
             case Keys.W:
             case Keys.UP:
                 up = true;
-                down = false;
-                left = false;
-                right = false;
                 velocity.y = speed;
                 break;
             case Keys.S:
             case Keys.DOWN:
-                up = false;
                 down = true;
-                left = false;
-                right = false;
                 velocity.y = -speed;
                 break;
             case Keys.A:
             case Keys.LEFT:
-                up = false;
-                down = false;
                 left = true;
-                right = false;
                 velocity.x = -speed;
                 break;
             case Keys.D:
             case Keys.RIGHT:
-                up = false;
-                down = false;
-                left = false;
                 right = true;
                 velocity.x = speed;
                 break;
@@ -258,11 +246,11 @@ public class Player extends Sprite implements InputProcessor {
         }
         else if(screenY < 200) {
             velocity.y = speed;
-            down = true;
+            up = true;
         }
         else if(screenY > Gdx.graphics.getHeight()-200){
             velocity.y = -speed;
-            up = true;
+            down = true;
         }
         return true;
     }

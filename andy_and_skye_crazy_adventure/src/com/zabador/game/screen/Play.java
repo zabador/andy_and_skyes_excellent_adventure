@@ -11,6 +11,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.zabador.game.entities.Player;
+import com.zabador.game.ui.MainUi;
 
 public class Play implements Screen {
 
@@ -18,11 +19,14 @@ public class Play implements Screen {
     private OrthogonalTiledMapRenderer renderer;
     private OrthographicCamera camera;
     private Player player;
+	private MainUi mainui;
 
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+		mainui.draw();
         
         renderer.setView(camera);
         renderer.render();
@@ -57,6 +61,8 @@ public class Play implements Screen {
 
         // tell game where the input processor is
         Gdx.input.setInputProcessor(player);
+		
+		mainui = new MainUi();
     }
 
     @Override
