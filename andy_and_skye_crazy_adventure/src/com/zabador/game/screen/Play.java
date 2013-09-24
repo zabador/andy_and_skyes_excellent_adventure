@@ -31,7 +31,8 @@ public class Play implements Screen {
         renderer.render();
 
         
-        camera.position.set(player.getX() + player.getWidth() / 2, player.getY() + player.getHeight() / 2, 0);
+		// -100 becuase of the size of the character ui screen at the botton
+        camera.position.set(player.getX() + player.getWidth() / 2, (player.getY() + player.getHeight() / 2)-100, 0);
         camera.update();
         
         renderer.getSpriteBatch().begin();
