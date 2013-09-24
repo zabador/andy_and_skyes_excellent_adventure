@@ -37,9 +37,10 @@ public class MainUi {
     public MainUi() {
 
         stage = new Stage();
+		
 
         //create area to draw the buttons
-        atlas = new TextureAtlas("ui/button.pack");
+        atlas = new TextureAtlas("ui/characterui.pack");
         skin = new Skin(atlas);
 
         white = new BitmapFont(Gdx.files.internal("fonts/white.fnt"));
@@ -53,6 +54,8 @@ public class MainUi {
 
         heading = new Label("This will be the main UI for the characters", headingStyle);
         heading.setFontScale(2);
+
+		table.setBackground(skin.getDrawable("characteruibackground"));
 
         table.debug(); //TODO delete when done debugging menu design
         table.add(heading);

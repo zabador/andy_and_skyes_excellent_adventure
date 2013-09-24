@@ -26,7 +26,6 @@ public class Play implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		mainui.draw();
         
         renderer.setView(camera);
         renderer.render();
@@ -38,6 +37,7 @@ public class Play implements Screen {
         renderer.getSpriteBatch().begin();
         player.draw(renderer.getSpriteBatch());
         renderer.getSpriteBatch().end();
+		mainui.draw();
     }
 
     @Override

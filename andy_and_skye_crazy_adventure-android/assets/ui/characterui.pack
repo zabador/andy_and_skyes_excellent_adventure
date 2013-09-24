@@ -1,0 +1,35 @@
+
+characterui.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+button
+  rotate: false
+  xy: 0, 9
+  size: 9, 18
+  orig: 9, 18
+  offset: 0, 0
+  index: -1
+down
+  rotate: false
+  xy: 0, 0
+  size: 9, 9
+  split: 2, 1, 2, 1
+  orig: 9, 9
+  offset: 0, 0
+  index: -1
+up
+  rotate: false
+  xy: 9, 18
+  size: 9, 9
+  split: 1, 2, 1, 2
+  orig: 9, 9
+  offset: 0, 0
+  index: -1
+characteruibackground
+  rotate: false
+  xy: 9, 13
+  size: 5, 5
+  orig: 5, 5
+  offset: 0, 0
+  index: -1
