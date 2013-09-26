@@ -21,6 +21,14 @@ public class Play implements Screen {
     private Player player;
 	private MainUi mainui;
 
+	public Play(Player player) {
+		this.player = player;
+	}
+
+	public Play() {
+
+	}
+
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -57,8 +65,12 @@ public class Play implements Screen {
         camera = new OrthographicCamera();
         //camera.zoom = .5f;
     
-        player = new Player(new Sprite(new Texture("imgs/player.png")), (TiledMapTileLayer) map.getLayers().get(0));
-        player.setPosition(46 * player.getCollisionLayer().getTileWidth(), 10 * player.getCollisionLayer().getTileHeight());
+		if(player == null){
+			player = new Player(new Sprite(new Texture("imgs/player.png")), (TiledMapTileLayer) map.getLayers().get(0));
+			player.setPosition(46 * player.getCollisionLayer().getTileWidth(), 10 * player.getCollisionLayer().getTileHeight());
+		}
+		else
+			player.setPosition(player.getX(),player.getY());
 
         // tell game where the input processor is
         Gdx.input.setInputProcessor(player);

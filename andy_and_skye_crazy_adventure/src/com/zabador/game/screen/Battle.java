@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.zabador.game.entities.Player;
 
 public class Battle implements Screen {
 
@@ -26,6 +27,11 @@ public class Battle implements Screen {
     private TextButton buttonExit;
     private Label heading;
     private BitmapFont white, black;
+	private Player player;
+
+	public Battle(Player player) {
+		this.player = player;
+	}
 
     @Override
     public void render(float delta) {
@@ -70,7 +76,7 @@ public class Battle implements Screen {
         buttonExit.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-				((Game)Gdx.app.getApplicationListener()).setScreen(new Play());
+				((Game)Gdx.app.getApplicationListener()).setScreen(new Play(player));
             }
         });
 

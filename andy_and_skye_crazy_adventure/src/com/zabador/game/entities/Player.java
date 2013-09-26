@@ -89,8 +89,6 @@ public class Player extends Sprite implements InputProcessor {
 
 		// set the random chance of the next encount
 		stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
-		
-
     }
 
     @Override
@@ -115,12 +113,15 @@ public class Player extends Sprite implements InputProcessor {
 		}
 
 		if(stepsToEncounter == 0){
-			((Game)Gdx.app.getApplicationListener()).setScreen(new Battle());
+			((Game)Gdx.app.getApplicationListener()).setScreen(new Battle(this));
+			up = down = left = right = false;
+			velocity.x = 0;
+			velocity.y = 0;
 			stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
-		}
+		}else
+			spriteBatch.draw(currentFrame, getX(), getY());
 
-        spriteBatch.draw(currentFrame, getX(), getY());
-        //		super.draw(spriteBatch);
+
     }
 
     public void update(float delta) {
