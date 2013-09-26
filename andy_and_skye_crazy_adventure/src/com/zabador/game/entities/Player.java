@@ -15,6 +15,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
 import com.zabador.game.screen.Battle;
 import com.zabador.game.screen.MainMenu;
+import com.zabador.game.screen.SaveScreen;
 
 public class Player extends Sprite implements InputProcessor {
 
@@ -107,6 +108,7 @@ public class Player extends Sprite implements InputProcessor {
 
 
         if((up || down || left || right) && (velocity.x != 0 || velocity.y != 0)) {
+			System.out.println("X = "+ this.getX() + " Y = " + this.getY());
 			stepsToEncounter--; 
 			stateTime += Gdx.graphics.getDeltaTime();
 		}
@@ -229,6 +231,9 @@ public class Player extends Sprite implements InputProcessor {
                 right = true;
                 velocity.x = speed;
                 break;
+			case Keys.ESCAPE:
+				((Game)Gdx.app.getApplicationListener()).setScreen(new SaveScreen(this));
+				break;
 
             default:
                 break;

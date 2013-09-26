@@ -1,6 +1,7 @@
 package com.zabador.game.screen;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -15,16 +16,26 @@ import com.zabador.game.ui.MainUi;
 
 public class Play implements Screen {
 
-    private TiledMap map;
-    private OrthogonalTiledMapRenderer renderer;
-    private OrthographicCamera camera;
-    private Player player;
+	private TiledMap map;
+	private OrthogonalTiledMapRenderer renderer;
+	private OrthographicCamera camera;
+	private Player player;
 	private MainUi mainui;
+	private Preferences prefs;
+	private boolean loading = false; // for when user is loading a saved game
 
+	//returning from battle scene
 	public Play(Player player) {
 		this.player = player;
 	}
 
+	// loading a saved game
+	public Play(Preferences prefs) {
+		this.prefs = prefs;
+		loading = true;
+	}
+
+	// new game
 	public Play() {
 
 	}
@@ -67,7 +78,10 @@ public class Play implements Screen {
     
 		if(player == null){ // it is a brand new game
 			player = new Player(new Sprite(new Texture("imgs/player.png")), (TiledMapTileLayer) map.getLayers().get(0));
-			player.setPosition(46 * player.getCollisionLayer().getTileWidth(), 10 * player.getCollisionLayer().getTileHeight());
+			if(loading) { // load player from saved preferences
+				player.setPosition(prefs.getFloat("playerX"), prefs.getFloat("playerY"));
+			}else
+				player.setPosition(46 * player.getCollisionLayer().getTileWidth(), 10 * player.getCollisionLayer().getTileHeight());
 		}
 		else // player has returned from a battle scene
 			player.setPosition(player.getX(),player.getY());

@@ -24,7 +24,7 @@ public class MainMenu implements Screen {
     private Skin skin;
     private TextureAtlas atlas;
     private Table table;
-    private TextButton buttonPlay, buttonExit;
+    private TextButton buttonPlay, buttonExit, buttonLoad;
     private Label heading;
     private BitmapFont white, black;
 
@@ -83,6 +83,15 @@ public class MainMenu implements Screen {
 			}
         });
 
+        buttonLoad = new TextButton("LOAD", textButtonStyle);
+        buttonLoad.pad(20);
+        buttonLoad.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                ((Game)Gdx.app.getApplicationListener()).setScreen(new Play(Gdx.app.getPreferences("SaveState")));
+			}
+        });
+
         LabelStyle headingStyle = new LabelStyle(white, Color.WHITE);
 
         heading = new Label("Need a game name!", headingStyle);
@@ -92,6 +101,7 @@ public class MainMenu implements Screen {
         table.add(heading);
         table.row();
         table.add(buttonPlay);
+		table.add(buttonLoad);
         table.add(buttonExit);
 
         stage.addActor(table);

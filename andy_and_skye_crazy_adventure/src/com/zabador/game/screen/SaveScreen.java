@@ -2,6 +2,7 @@ package com.zabador.game.screen;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -18,18 +19,18 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.zabador.game.entities.Player;
 
-public class Battle implements Screen {
+public class SaveScreen implements Screen {
 
     private Stage stage;
     private Skin skin;
     private TextureAtlas atlas;
     private Table table;
-    private TextButton buttonExit;
+    private TextButton buttonCANCEL, buttonSave;
     private Label heading;
     private BitmapFont white, black;
 	private Player player;
 
-	public Battle(Player player) {
+	public SaveScreen(Player player) {
 		this.player = player;
 	}
 
@@ -70,12 +71,25 @@ public class Battle implements Screen {
         textButtonStyle.pressedOffsetY = -1;
         textButtonStyle.font = black;
 
-        buttonExit = new TextButton("EXIT", textButtonStyle);
-        buttonExit.pad(20);
-        buttonExit.addListener(new ClickListener() {
+        buttonCANCEL = new TextButton("CANCEL", textButtonStyle);
+        buttonCANCEL.pad(20);
+        buttonCANCEL.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
 				((Game)Gdx.app.getApplicationListener()).setScreen(new Play(player));
+            }
+        });
+
+        buttonSave = new TextButton("SAVE and EXIT", textButtonStyle);
+        buttonSave.pad(20);
+        buttonSave.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+				Preferences prefs = Gdx.app.getPreferences("SaveState");
+				prefs.putFloat("playerX",player.getX());
+				prefs.putFloat("playerY",player.getY());
+				prefs.flush();
+				Gdx.app.exit();
             }
         });
 
@@ -86,7 +100,8 @@ public class Battle implements Screen {
         table.debug(); //TODO delete when done debugging menu design
         table.add(heading);
         table.row();
-        table.add(buttonExit);
+		table.add(buttonSave);
+        table.add(buttonCANCEL);
 
         stage.addActor(table);
 
