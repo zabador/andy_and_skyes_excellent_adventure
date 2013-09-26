@@ -11,6 +11,7 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+import com.badlogic.gdx.utils.Base64Coder;
 import com.zabador.game.entities.Player;
 import com.zabador.game.ui.MainUi;
 
@@ -79,7 +80,9 @@ public class Play implements Screen {
 		if(player == null){ // it is a brand new game
 			player = new Player(new Sprite(new Texture("imgs/player.png")), (TiledMapTileLayer) map.getLayers().get(0));
 			if(loading) { // load player from saved preferences
-				player.setPosition(prefs.getFloat("playerX"), prefs.getFloat("playerY"));
+				String x = new String(Base64Coder.decode(prefs.getString("playerX").toCharArray()));
+				String y = new String(Base64Coder.decode(prefs.getString("playerY").toCharArray()));
+				player.setPosition(Float.parseFloat(x), Float.parseFloat(y));
 			}else
 				player.setPosition(46 * player.getCollisionLayer().getTileWidth(), 10 * player.getCollisionLayer().getTileHeight());
 		}

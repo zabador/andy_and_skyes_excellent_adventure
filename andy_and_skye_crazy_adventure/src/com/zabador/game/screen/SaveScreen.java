@@ -1,5 +1,7 @@
 package com.zabador.game.screen;
 
+import java.nio.ByteBuffer;
+
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
@@ -17,6 +19,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Base64Coder;
 import com.zabador.game.entities.Player;
 
 public class SaveScreen implements Screen {
@@ -86,10 +89,9 @@ public class SaveScreen implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
 				Preferences prefs = Gdx.app.getPreferences("SaveState");
-				prefs.putFloat("playerX",player.getX());
-				prefs.putFloat("playerY",player.getY());
-				prefs.flush();
-				Gdx.app.exit();
+				prefs.putString("playerX",Base64Coder.encode(ByteBuffer.allocate(4).putFloat(player.getX()).array()).toString());
+				prefs.putString("playerY",Base64Coder.encode(ByteBuffer.allocate(4).putFloat(player.getY()).array()).toString());
+				prefs.flush(); Gdx.app.exit();
             }
         });
 
