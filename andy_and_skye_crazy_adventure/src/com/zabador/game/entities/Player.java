@@ -1,5 +1,6 @@
 package com.zabador.game.entities;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
@@ -12,6 +13,8 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
+import com.zabador.game.screen.Battle;
+import com.zabador.game.screen.MainMenu;
 
 public class Player extends Sprite implements InputProcessor {
 
@@ -111,6 +114,7 @@ public class Player extends Sprite implements InputProcessor {
 
 		if(stepsToEncounter == 0){
 			System.out.println("A random encounter occurred");
+			((Game)Gdx.app.getApplicationListener()).setScreen(new Battle());
 			stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
 		}
 
