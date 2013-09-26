@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
 
@@ -31,6 +32,11 @@ public class Player extends Sprite implements InputProcessor {
     private final int DOWN_ROW = 2;	
     private final int RIGHT_ROW = 1;	
     private final int LEFT_ROW = 3;	
+
+	// steps to next encounter
+	private int stepsToEncounter;
+	private final int LOWBOUNDSTEPS = 200;
+	private final int HIGHBOUNTSTEPS = 800;
 
     private float stateTime;
 
@@ -76,6 +82,10 @@ public class Player extends Sprite implements InputProcessor {
         stateTime = 0f;
         currentFrame = downAnimation.getKeyFrame(stateTime, true);
 
+		// set the random chance of the next encount
+		stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
+		
+
     }
 
     @Override
@@ -93,8 +103,16 @@ public class Player extends Sprite implements InputProcessor {
             currentFrame = rightAnimation.getKeyFrame(stateTime, true);
 
 
-        if(up || down || left || right)
+        if(up || down || left || right) {
+			System.out.println("The number of steps is "+stepsToEncounter);
+			stepsToEncounter--;
             stateTime += Gdx.graphics.getDeltaTime();
+		}
+
+		if(stepsToEncounter == 0){
+			System.out.println("A random encounter occurred");
+			stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
+		}
 
         spriteBatch.draw(currentFrame, getX(), getY());
         //		super.draw(spriteBatch);
