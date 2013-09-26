@@ -107,11 +107,11 @@ public class Player extends Sprite implements InputProcessor {
 
 
         if((up || down || left || right) && (velocity.x != 0 || velocity.y != 0)) {
-			System.out.println("stepsToEncounter "+stepsToEncounter);
-			stepsToEncounter--;
+			stepsToEncounter--; 
 			stateTime += Gdx.graphics.getDeltaTime();
 		}
 
+		// random battle has occured
 		if(stepsToEncounter == 0){
 			((Game)Gdx.app.getApplicationListener()).setScreen(new Battle(this));
 			up = down = left = right = false;

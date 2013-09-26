@@ -65,11 +65,11 @@ public class Play implements Screen {
         camera = new OrthographicCamera();
         //camera.zoom = .5f;
     
-		if(player == null){
+		if(player == null){ // it is a brand new game
 			player = new Player(new Sprite(new Texture("imgs/player.png")), (TiledMapTileLayer) map.getLayers().get(0));
 			player.setPosition(46 * player.getCollisionLayer().getTileWidth(), 10 * player.getCollisionLayer().getTileHeight());
 		}
-		else
+		else // player has returned from a battle scene
 			player.setPosition(player.getX(),player.getY());
 
         // tell game where the input processor is
