@@ -18,7 +18,7 @@
 		<link>
 			<name>assets</name>
 			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/my-gdx-game-android/assets</locationURI>
+			<location>/home/zabador/p/games/andy_and_skyes_excellent_adventure/andy_and_skye_crazy_adventure-android/assets</location>
 		</link>
 	</linkedResources>
 </projectDescription>
