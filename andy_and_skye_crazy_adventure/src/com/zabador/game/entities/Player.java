@@ -134,12 +134,20 @@ public class Player extends Sprite implements InputProcessor {
 
         if(velocity.x < 0) {
 
+			try {
             collisionX = collisionLayer.getCell((int)(getX()/tileWidth), (int)((getY()+getHeight()/2)/tileHeight))
                 .getTile().getProperties().containsKey("blocked");
+			}catch(NullPointerException npe) { // player is off map
+				collisionX = true;
+			}
 
         }else if(velocity.x > 0) {
+			try {
             collisionX = collisionLayer.getCell((int)((getX() + getWidth())/tileWidth), (int)((getY()+getHeight()/2)/tileHeight))
                 .getTile().getProperties().containsKey("blocked");		
+			}catch(NullPointerException npe) { // player is off map
+				collisionX = true;
+			}
         }
 
         if(collisionX) {
@@ -151,13 +159,20 @@ public class Player extends Sprite implements InputProcessor {
         setY(getY() + velocity.y * delta);
 
         if(velocity.y < 0) {
-
+			try {
             collisionY = collisionLayer.getCell((int)((getX() + getWidth()/2) / tileWidth), (int) (getY() / tileHeight))
                 .getTile().getProperties().containsKey("blocked");
+			}catch(NullPointerException npe) { // player is off map
+				collisionY = true;
+			}
 
         }else if(velocity.y > 0) {
+			try {
             collisionY = collisionLayer.getCell((int)((getX() + getWidth()/2) / tileWidth), (int) ((getY() + getHeight()) / tileHeight))
                 .getTile().getProperties().containsKey("blocked");
+			}catch(NullPointerException npe) { // player is off map
+				collisionY = true;
+			}
 
         }
 
