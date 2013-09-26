@@ -41,6 +41,8 @@ public class Player extends Sprite implements InputProcessor {
 	private final int LOWBOUNDSTEPS = 200;
 	private final int HIGHBOUNTSTEPS = 800;
 
+	private boolean collisionX = false, collisionY = false;
+
     private float stateTime;
 
     private float speed = 60 * 3;
@@ -106,14 +108,13 @@ public class Player extends Sprite implements InputProcessor {
             currentFrame = rightAnimation.getKeyFrame(stateTime, true);
 
 
-        if(up || down || left || right) {
-			System.out.println("The number of steps is "+stepsToEncounter);
+        if((up || down || left || right) && (velocity.x != 0 || velocity.y != 0)) {
+			System.out.println("stepsToEncounter "+stepsToEncounter);
 			stepsToEncounter--;
-            stateTime += Gdx.graphics.getDeltaTime();
+			stateTime += Gdx.graphics.getDeltaTime();
 		}
 
 		if(stepsToEncounter == 0){
-			System.out.println("A random encounter occurred");
 			((Game)Gdx.app.getApplicationListener()).setScreen(new Battle());
 			stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
 		}
@@ -127,7 +128,6 @@ public class Player extends Sprite implements InputProcessor {
         float oldX = getX(), oldY = getY();
         float tileWidth = collisionLayer.getTileWidth(), tileHeight = collisionLayer.getTileHeight();
 
-        boolean collisionX = false, collisionY = false;
 
         setX(getX() + velocity.x * delta);
 
