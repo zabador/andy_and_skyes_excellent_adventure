@@ -47,7 +47,7 @@ public class MainMenu implements Screen {
         // start the music
         music = Gdx.audio.newMusic(Gdx.files.internal("sound/Zelda_Menu.mp3"));
         music.setLooping(true);
-        music.play();
+        //music.play();
 
         stage = new Stage();
 

@@ -1,0 +1,28 @@
+{
+    "monsters": [
+        {
+            "name": "monster1",
+            "level": 1,
+            "attack": 20,
+            "defense": 10,
+            "exp": 100,
+            "hp": 200
+        },
+        {
+            "name": "monster2",
+            "level": 3,
+            "attack": 30,
+            "defense": 35,
+            "exp": 150,
+            "hp": 250
+        },
+        {
+            "name": "monster3",
+            "level": 2,
+            "attack": 30,
+            "defense": 55,
+            "exp": 10,
+            "hp": 450
+        }
+    ]     
+}

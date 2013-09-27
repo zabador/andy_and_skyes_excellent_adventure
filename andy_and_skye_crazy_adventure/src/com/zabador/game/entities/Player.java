@@ -108,7 +108,6 @@ public class Player extends Sprite implements InputProcessor {
 
 
         if((up || down || left || right) && (velocity.x != 0 || velocity.y != 0)) {
-			System.out.println("X = "+ this.getX() + " Y = " + this.getY());
 			stepsToEncounter--; 
 			stateTime += Gdx.graphics.getDeltaTime();
 		}

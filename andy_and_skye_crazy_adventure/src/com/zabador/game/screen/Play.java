@@ -1,5 +1,11 @@
 package com.zabador.game.screen;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
@@ -16,6 +22,9 @@ import com.badlogic.gdx.utils.Base64Coder;
 import com.zabador.game.entities.Player;
 import com.zabador.game.ui.MainUi;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 public class Play implements Screen {
 
     private TiledMap map;
@@ -26,6 +35,9 @@ public class Play implements Screen {
     private Preferences prefs;
     private boolean loading = false; // for when user is loading a saved game
     private Music music;
+
+    JSONObject jsonObject;
+    JSONArray jsonArray;
 
     //returning from battle scene
     public Play(Player player) {
@@ -98,9 +110,14 @@ public class Play implements Screen {
 
         music = Gdx.audio.newMusic(Gdx.files.internal("sound/Zelda_Theme.mp3"));
         music.setLooping(true);
-        music.play();
+//        music.play();
         
         mainui = new MainUi();
+
+        try {
+            JSONObject monstersFeed = new JSONObject(Gdx.files.internal("feeds/monster.json").readString());
+        System.out.println(monstersFeed);
+        }catch(Exception e){System.out.println("Error getting feed " + e.getStackTrace());}
     }
 
     @Override
