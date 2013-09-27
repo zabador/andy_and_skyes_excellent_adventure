@@ -1,5 +1,7 @@
 package com.zabador.game.entities;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -16,6 +18,7 @@ import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
 import com.zabador.game.screen.Battle;
 import com.zabador.game.screen.MainMenu;
 import com.zabador.game.screen.SaveScreen;
+
 
 public class Player extends Sprite implements InputProcessor {
 
@@ -42,6 +45,8 @@ public class Player extends Sprite implements InputProcessor {
 	private final int LOWBOUNDSTEPS = 200;
 	private final int HIGHBOUNTSTEPS = 800;
 
+    private ArrayList<Enemy> enemies;
+
 	private boolean collisionX = false, collisionY = false;
 
     private float stateTime;
@@ -50,13 +55,15 @@ public class Player extends Sprite implements InputProcessor {
 
     private TiledMapTileLayer collisionLayer;
 
-    public Player(Sprite sprite, TiledMapTileLayer collisionLayer) {
+    public Player(Sprite sprite, TiledMapTileLayer collisionLayer, ArrayList<Enemy> enemies) {
 
         super(sprite);
 
         Texture.setEnforcePotImages(false); // sprite sheets do not need to have dimensions of Power Of Two anymore
 
         this.collisionLayer = collisionLayer;
+        this.enemies = enemies; // list of enemies
+
         walkSheet = new Texture(Gdx.files.internal("imgs/figure_sheet.png"));
         TextureRegion[][] tmp = TextureRegion.split(walkSheet, walkSheet.getWidth() / FRAME_COLS, walkSheet.getHeight() / FRAME_ROWS);
         leftWalkFrames = new TextureRegion[FRAME_COLS];
@@ -114,7 +121,8 @@ public class Player extends Sprite implements InputProcessor {
 
 		// random battle has occured
 		if(stepsToEncounter == 0){
-			((Game)Gdx.app.getApplicationListener()).setScreen(new Battle(this));
+            int i = MathUtils.random(enemies.size()-1);
+			((Game)Gdx.app.getApplicationListener()).setScreen(new Battle(this, enemies.get(i)));
 			up = down = left = right = false;
 			velocity.x = 0;
 			velocity.y = 0;

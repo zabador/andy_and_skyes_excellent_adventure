@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.zabador.game.entities.Enemy;
 import com.zabador.game.entities.Player;
 
 public class Battle implements Screen {
@@ -25,12 +26,14 @@ public class Battle implements Screen {
     private TextureAtlas atlas;
     private Table table;
     private TextButton buttonExit;
-    private Label heading;
+    private Label heading, monsterName, monsterLevel, monsterAttack, monsterDefense, monsterExp, monsterHP;
     private BitmapFont white, black;
 	private Player player;
+    private Enemy enemy;
 
-	public Battle(Player player) {
+	public Battle(Player player, Enemy enemy) {
 		this.player = player;
+        this.enemy = enemy;
 	}
 
     @Override
@@ -81,10 +84,28 @@ public class Battle implements Screen {
 
         LabelStyle headingStyle = new LabelStyle(white, Color.WHITE);
 
-        heading = new Label("Battle sceen", headingStyle); heading.setFontScale(2);
+        heading = new Label("Battle screen", headingStyle); heading.setFontScale(2);
+        monsterName = new Label("Name = " + enemy.getName(), headingStyle); heading.setFontScale(2);
+        monsterLevel = new Label("Level = " + new Integer(enemy.getLevel()).toString(), headingStyle); heading.setFontScale(2);
+        monsterAttack = new Label("Attack = " + new Integer(enemy.getAttack()).toString(), headingStyle); heading.setFontScale(2);
+        monsterDefense = new Label("Defense = " + new Integer(enemy.getDefense()).toString(), headingStyle); heading.setFontScale(2);
+        monsterExp = new Label("EXP = " + new Integer(enemy.getExp()).toString(), headingStyle); heading.setFontScale(2);
+        monsterHP = new Label("HP = " + new Integer(enemy.getHp()).toString(), headingStyle); heading.setFontScale(2);
 
         table.debug(); //TODO delete when done debugging menu design
         table.add(heading);
+        table.row();
+        table.add(monsterName);
+        table.row();
+        table.add(monsterLevel);
+        table.row();
+        table.add(monsterAttack);
+        table.row();
+        table.add(monsterDefense);
+        table.row();
+        table.add(monsterExp);
+        table.row();
+        table.add(monsterHP);
         table.row();
         table.add(buttonExit);
 

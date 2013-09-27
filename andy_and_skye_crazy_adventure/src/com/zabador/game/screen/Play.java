@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.util.ArrayList;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
@@ -19,6 +20,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.utils.Base64Coder;
+import com.zabador.game.entities.Enemy;
 import com.zabador.game.entities.Player;
 import com.zabador.game.ui.MainUi;
 
@@ -35,6 +37,7 @@ public class Play implements Screen {
     private Preferences prefs;
     private boolean loading = false; // for when user is loading a saved game
     private Music music;
+    private ArrayList<Enemy> enemies;
 
     JSONObject jsonObject;
     JSONArray jsonArray;
@@ -85,6 +88,23 @@ public class Play implements Screen {
     @Override
     public void show() {
         map = new TmxMapLoader().load("maps/mountains.tmx");
+
+        enemies = new ArrayList<Enemy>();
+
+        // build the array of enemies to pass to the player
+        try {
+            JSONObject monstersFeed = new JSONObject(Gdx.files.internal("feeds/monster.json").readString());
+            JSONArray monsterArray = monstersFeed.getJSONArray("monsters");
+            for (int i = 0; i<monsterArray.length(); i++ ) {
+                JSONObject monster = monsterArray.getJSONObject(i);
+                enemies.add(new Enemy(monster.getString("name"), 
+                            monster.getInt("level"), 
+                            monster.getInt("attack"),
+                            monster.getInt("defense"),
+                            monster.getInt("exp"),
+                            monster.getInt("hp")));
+            }
+        }catch(Exception e){System.out.println("Error getting feed " + e.getStackTrace());}
         
         renderer = new OrthogonalTiledMapRenderer(map);
         
@@ -92,7 +112,7 @@ public class Play implements Screen {
         //camera.zoom = .5f;
     
         if(player == null){ // it is a brand new game
-            player = new Player(new Sprite(new Texture("imgs/player.png")), (TiledMapTileLayer) map.getLayers().get(0));
+            player = new Player(new Sprite(new Texture("imgs/player.png")), (TiledMapTileLayer) map.getLayers().get(0), enemies);
             if(loading) { // load player from saved preferences
                 player.setPosition(Float.parseFloat(
                             new String(Base64Coder.decodeString(prefs
@@ -114,10 +134,6 @@ public class Play implements Screen {
         
         mainui = new MainUi();
 
-        try {
-            JSONObject monstersFeed = new JSONObject(Gdx.files.internal("feeds/monster.json").readString());
-        System.out.println(monstersFeed);
-        }catch(Exception e){System.out.println("Error getting feed " + e.getStackTrace());}
     }
 
     @Override
