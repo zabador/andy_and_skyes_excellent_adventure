@@ -3,6 +3,7 @@ package com.zabador.game.screen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -17,29 +18,30 @@ import com.zabador.game.ui.MainUi;
 
 public class Play implements Screen {
 
-	private TiledMap map;
-	private OrthogonalTiledMapRenderer renderer;
-	private OrthographicCamera camera;
-	private Player player;
-	private MainUi mainui;
-	private Preferences prefs;
-	private boolean loading = false; // for when user is loading a saved game
+    private TiledMap map;
+    private OrthogonalTiledMapRenderer renderer;
+    private OrthographicCamera camera;
+    private Player player;
+    private MainUi mainui;
+    private Preferences prefs;
+    private boolean loading = false; // for when user is loading a saved game
+    private Music music;
 
-	//returning from battle scene
-	public Play(Player player) {
-		this.player = player;
-	}
+    //returning from battle scene
+    public Play(Player player) {
+        this.player = player;
+    }
 
-	// loading a saved game
-	public Play(Preferences prefs) {
-		this.prefs = prefs;
-		loading = true;
-	}
+    // loading a saved game
+    public Play(Preferences prefs) {
+        this.prefs = prefs;
+        loading = true;
+    }
 
-	// new game
-	public Play() {
+    // new game
+    public Play() {
 
-	}
+    }
 
     @Override
     public void render(float delta) {
@@ -51,14 +53,14 @@ public class Play implements Screen {
         renderer.render();
 
         
-		// -100 becuase of the size of the character ui screen at the botton
+        // -100 becuase of the size of the character ui screen at the botton
         camera.position.set(player.getX() + player.getWidth() / 2, (player.getY() + player.getHeight() / 2)-100, 0);
         camera.update();
         
         renderer.getSpriteBatch().begin();
         player.draw(renderer.getSpriteBatch());
         renderer.getSpriteBatch().end();
-		mainui.draw();
+        mainui.draw();
     }
 
     @Override
@@ -77,28 +79,33 @@ public class Play implements Screen {
         camera = new OrthographicCamera();
         //camera.zoom = .5f;
     
-		if(player == null){ // it is a brand new game
-			player = new Player(new Sprite(new Texture("imgs/player.png")), (TiledMapTileLayer) map.getLayers().get(0));
-			if(loading) { // load player from saved preferences
-				player.setPosition(Float.parseFloat(
+        if(player == null){ // it is a brand new game
+            player = new Player(new Sprite(new Texture("imgs/player.png")), (TiledMapTileLayer) map.getLayers().get(0));
+            if(loading) { // load player from saved preferences
+                player.setPosition(Float.parseFloat(
                             new String(Base64Coder.decodeString(prefs
                                     .getString("playerX")))), Float.parseFloat(
                             new String(Base64Coder.decodeString(prefs
                                     .getString("playerY")))));
-			}else
-				player.setPosition(46 * player.getCollisionLayer().getTileWidth(), 10 * player.getCollisionLayer().getTileHeight());
-		}
-		else // player has returned from a battle scene
-			player.setPosition(player.getX(),player.getY());
+            }else
+                player.setPosition(46 * player.getCollisionLayer().getTileWidth(), 10 * player.getCollisionLayer().getTileHeight());
+        }
+        else // player has returned from a battle scene
+            player.setPosition(player.getX(),player.getY());
 
         // tell game where the input processor is
         Gdx.input.setInputProcessor(player);
-		
-		mainui = new MainUi();
+
+        music = Gdx.audio.newMusic(Gdx.files.internal("sound/Zelda_Theme.mp3"));
+        music.setLooping(true);
+        music.play();
+        
+        mainui = new MainUi();
     }
 
     @Override
     public void hide() {
+        music.stop();
         dispose();
     }
 
@@ -117,6 +124,7 @@ public class Play implements Screen {
         map.dispose();
         renderer.dispose();
         player.getTexture().dispose();
+        music.dispose();
     }
 
 }

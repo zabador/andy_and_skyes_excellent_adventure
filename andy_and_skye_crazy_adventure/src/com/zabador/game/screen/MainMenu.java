@@ -3,6 +3,7 @@ package com.zabador.game.screen;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -27,6 +28,7 @@ public class MainMenu implements Screen {
     private TextButton buttonPlay, buttonExit, buttonLoad;
     private Label heading;
     private BitmapFont white, black;
+    private Music music;
 
     @Override
     public void render(float delta) {
@@ -41,6 +43,11 @@ public class MainMenu implements Screen {
 
     @Override
     public void show() {
+
+        // start the music
+        music = Gdx.audio.newMusic(Gdx.files.internal("sound/Zelda_Menu.mp3"));
+        music.setLooping(true);
+        music.play();
 
         stage = new Stage();
 
@@ -80,7 +87,7 @@ public class MainMenu implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 ((Game)Gdx.app.getApplicationListener()).setScreen(new Play());
-			}
+            }
         });
 
         buttonLoad = new TextButton("LOAD", textButtonStyle);
@@ -89,7 +96,7 @@ public class MainMenu implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 ((Game)Gdx.app.getApplicationListener()).setScreen(new Play(Gdx.app.getPreferences("SaveState")));
-			}
+            }
         });
 
         LabelStyle headingStyle = new LabelStyle(white, Color.WHITE);
@@ -101,7 +108,7 @@ public class MainMenu implements Screen {
         table.add(heading);
         table.row();
         table.add(buttonPlay);
-		table.add(buttonLoad);
+        table.add(buttonLoad);
         table.add(buttonExit);
 
         stage.addActor(table);
@@ -114,6 +121,7 @@ public class MainMenu implements Screen {
     }
     @Override
     public void hide() {
+        music.stop();
 
     }
 
@@ -129,6 +137,7 @@ public class MainMenu implements Screen {
 
     @Override
     public void dispose() {
+        music.dispose();
 
     }
 }
