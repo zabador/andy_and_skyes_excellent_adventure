@@ -80,9 +80,11 @@ public class Play implements Screen {
 		if(player == null){ // it is a brand new game
 			player = new Player(new Sprite(new Texture("imgs/player.png")), (TiledMapTileLayer) map.getLayers().get(0));
 			if(loading) { // load player from saved preferences
-				String x = new String(Base64Coder.decode(prefs.getString("playerX").toCharArray()));
-				String y = new String(Base64Coder.decode(prefs.getString("playerY").toCharArray()));
-				player.setPosition(Float.parseFloat(x), Float.parseFloat(y));
+				player.setPosition(Float.parseFloat(
+                            new String(Base64Coder.decodeString(prefs
+                                    .getString("playerX")))), Float.parseFloat(
+                            new String(Base64Coder.decodeString(prefs
+                                    .getString("playerY")))));
 			}else
 				player.setPosition(46 * player.getCollisionLayer().getTileWidth(), 10 * player.getCollisionLayer().getTileHeight());
 		}

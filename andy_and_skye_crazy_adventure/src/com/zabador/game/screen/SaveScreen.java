@@ -89,8 +89,8 @@ public class SaveScreen implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
 				Preferences prefs = Gdx.app.getPreferences("SaveState");
-				prefs.putString("playerX",Base64Coder.encode(ByteBuffer.allocate(4).putFloat(player.getX()).array()).toString());
-				prefs.putString("playerY",Base64Coder.encode(ByteBuffer.allocate(4).putFloat(player.getY()).array()).toString());
+				prefs.putString("playerX",Base64Coder.encodeString(Float.toString(player.getX())));
+				prefs.putString("playerY",Base64Coder.encodeString(Float.toString(player.getY())));
 				prefs.flush(); Gdx.app.exit();
             }
         });
