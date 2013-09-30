@@ -48,34 +48,23 @@ public class Player extends Sprite  {
     private final int RIGHT_ROW = 1;	
     private final int LEFT_ROW = 3;	
 
+	public final int LOWBOUNDSTEPS = 200;
+	public final int HIGHBOUNTSTEPS = 800;
+
+	private boolean isBlocked;
+
 	// steps to next encounter
 	private int stepsToEncounter;
-	private final int LOWBOUNDSTEPS = 200;
-	private final int HIGHBOUNTSTEPS = 800;
-
-    private ArrayList<Enemy> enemies;
-
 
     private float stateTime;
 
-    private float speed = 60 * 3;
+    private float speed = 60 * 2;
 
-    private TiledMapTileLayer collisionLayer;
-
-
-	private Player thisPlayer;
-
-	private StartBattle startBattle;
-
-    public Player(Sprite sprite, ArrayList<Enemy> enemies, StartBattle startBattle) {
+    public Player(Sprite sprite) {
 
         super(sprite);
 
         Texture.setEnforcePotImages(false); // sprite sheets do not need to have dimensions of Power Of Two anymore
-
-        this.collisionLayer = collisionLayer;
-        this.enemies = enemies; // list of enemies
-		this.startBattle = startBattle;
 
         walkSheet = new Texture(Gdx.files.internal("imgs/figure_sheet.png"));
         TextureRegion[][] tmp = TextureRegion.split(walkSheet, walkSheet.getWidth() / FRAME_COLS, walkSheet.getHeight() / FRAME_ROWS);
@@ -108,8 +97,8 @@ public class Player extends Sprite  {
         stateTime = 0f;
         currentFrame = downAnimation.getKeyFrame(stateTime, true);
 
-		// set the random chance of the next encount
-	//	stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
+		//set the random chance of the next encount
+		stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
     }
 
     @Override
@@ -126,27 +115,25 @@ public class Player extends Sprite  {
         else if(right)
             currentFrame = rightAnimation.getKeyFrame(stateTime, true);
 
-
-        if((up || down || left || right) && (velocity.x != 0 || velocity.y != 0)) {
-	//		stepsToEncounter--; 
-			stateTime += Gdx.graphics.getDeltaTime();
-		}
-
-		// random battle has occured
-	//	if(stepsToEncounter == 0){
-	//		up = down = left = right = false;
-	//		velocity.x = 0;
-	//		velocity.y = 0;
-	//		stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
-	//		startBattle.goToBattle();			
-	//	}else
-			spriteBatch.draw(currentFrame, getX(), getY());
+		spriteBatch.draw(currentFrame, getX(), getY());
     }
 
     public void update(float delta) {
         setX(getX() + velocity.x * delta);
         setY(getY() + velocity.y * delta);
+        if((up || down || left || right) && (velocity.x != 0 || velocity.y != 0)) {
+			stepsToEncounter--;
+			stateTime += delta;
+		}
     }
+
+	public int getStepsToEncounter() {
+		return this.stepsToEncounter;
+	}
+
+	public void setStepsToEncounter(int stepsToEncounter) {
+		this.stepsToEncounter = stepsToEncounter;
+	}
 
     public Vector2 getVelocity() {
         return velocity;

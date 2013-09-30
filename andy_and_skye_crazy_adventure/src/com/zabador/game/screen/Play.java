@@ -54,7 +54,8 @@ public class Play implements Screen, StartBattle, InputProcessor{
 	private Music music;
 	private ArrayList<Enemy> enemies;
     private TweenManager tweenManager; // used to fade the splash screen
-	private boolean collisionX = false, collisionY = false;
+	public boolean collisionX = false, collisionY = false;
+	private boolean inBattle;
 
 	JSONObject jsonObject;
 	JSONArray jsonArray;
@@ -91,12 +92,26 @@ public class Play implements Screen, StartBattle, InputProcessor{
 		camera.update();
 
 		player.update(delta);
+		checkforBattle();
 		checkForCollisions();
 
 		renderer.getSpriteBatch().begin();
-		player.draw(renderer.getSpriteBatch());
+		if(!inBattle)
+			player.draw(renderer.getSpriteBatch());
 		renderer.getSpriteBatch().end();
 		mainui.draw();
+	}
+
+	private void checkforBattle() {
+		if(player.getStepsToEncounter() <= 0){
+			player.up = player.down = player.left = player.right = false;
+			player.velocity.x = 0;
+			player.velocity.y = 0;
+			inBattle = true;
+			player.setStepsToEncounter(MathUtils.random(player.LOWBOUNDSTEPS, player.HIGHBOUNTSTEPS));
+			goToBattle();
+		}
+
 	}
 
 	private void checkForCollisions() {
@@ -126,8 +141,6 @@ public class Play implements Screen, StartBattle, InputProcessor{
             player.velocity.x = 0;
         }
 
-
-
         if(player.velocity.y < 0) {
 			try {
             collisionY = collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) (player.getY() / tileHeight))
@@ -150,6 +163,8 @@ public class Play implements Screen, StartBattle, InputProcessor{
             player.setY(oldY);
             player.velocity.y = 0;
         }
+
+
 
 	}
 
@@ -213,7 +228,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
         //camera.zoom = .5f;
     
         if(player == null){ // it is a brand new game
-            player = new Player(new Sprite(new Texture("imgs/player.png")), enemies, this);
+            player = new Player(new Sprite(new Texture("imgs/player.png")));
             if(loading) { // load player from saved preferences
                 player.setPosition(Float.parseFloat(
                             new String(Base64Coder.decodeString(prefs
@@ -224,8 +239,8 @@ public class Play implements Screen, StartBattle, InputProcessor{
                 player.setPosition(46 * collisionLayer.getTileWidth(), 10 * collisionLayer.getTileHeight());
         }
         else {// player has returned from a battle scene
+			inBattle = false;
             player.setPosition(player.getX(),player.getY());
-			tweenManager.killAll();
 		}
 
         // tell game where the input processor is
