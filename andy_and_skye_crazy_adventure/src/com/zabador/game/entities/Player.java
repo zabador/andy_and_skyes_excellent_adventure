@@ -2,10 +2,16 @@ package com.zabador.game.entities;
 
 import java.util.ArrayList;
 
+import aurelienribon.tweenengine.BaseTween;
+import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenCallback;
+import aurelienribon.tweenengine.TweenManager;
+
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -15,15 +21,17 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
+import com.zabador.game.StartBattle;
 import com.zabador.game.screen.Battle;
 import com.zabador.game.screen.MainMenu;
+import com.zabador.game.screen.Play;
 import com.zabador.game.screen.SaveScreen;
+import com.zabador.game.tween.SpriteAccessor;
 
-
-public class Player extends Sprite implements InputProcessor {
+public class Player extends Sprite  {
 
     // movement velocity
-    private Vector2 velocity = new Vector2();
+    public Vector2 velocity = new Vector2();
 
     // the number of rows and col in the player sprite sheet
     private final int FRAME_COLS = 3, FRAME_ROWS = 4;
@@ -32,7 +40,7 @@ public class Player extends Sprite implements InputProcessor {
     private Texture walkSheet;
     private TextureRegion[] leftWalkFrames, rightWalkFrames, upWalkFrames, downWalkFrames;
     private TextureRegion currentFrame;
-    private boolean left, right, up, down;
+    public boolean left, right, up, down;
 
     // asign the correct rows for each direction
     private final int UP_ROW = 0;	
@@ -47,7 +55,6 @@ public class Player extends Sprite implements InputProcessor {
 
     private ArrayList<Enemy> enemies;
 
-	private boolean collisionX = false, collisionY = false;
 
     private float stateTime;
 
@@ -55,7 +62,12 @@ public class Player extends Sprite implements InputProcessor {
 
     private TiledMapTileLayer collisionLayer;
 
-    public Player(Sprite sprite, TiledMapTileLayer collisionLayer, ArrayList<Enemy> enemies) {
+
+	private Player thisPlayer;
+
+	private StartBattle startBattle;
+
+    public Player(Sprite sprite, ArrayList<Enemy> enemies, StartBattle startBattle) {
 
         super(sprite);
 
@@ -63,6 +75,7 @@ public class Player extends Sprite implements InputProcessor {
 
         this.collisionLayer = collisionLayer;
         this.enemies = enemies; // list of enemies
+		this.startBattle = startBattle;
 
         walkSheet = new Texture(Gdx.files.internal("imgs/figure_sheet.png"));
         TextureRegion[][] tmp = TextureRegion.split(walkSheet, walkSheet.getWidth() / FRAME_COLS, walkSheet.getHeight() / FRAME_ROWS);
@@ -96,7 +109,7 @@ public class Player extends Sprite implements InputProcessor {
         currentFrame = downAnimation.getKeyFrame(stateTime, true);
 
 		// set the random chance of the next encount
-		stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
+	//	stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
     }
 
     @Override
@@ -115,80 +128,24 @@ public class Player extends Sprite implements InputProcessor {
 
 
         if((up || down || left || right) && (velocity.x != 0 || velocity.y != 0)) {
-			stepsToEncounter--; 
+	//		stepsToEncounter--; 
 			stateTime += Gdx.graphics.getDeltaTime();
 		}
 
 		// random battle has occured
-		if(stepsToEncounter == 0){
-            int i = MathUtils.random(enemies.size()-1);
-			((Game)Gdx.app.getApplicationListener()).setScreen(new Battle(this, enemies.get(i)));
-			up = down = left = right = false;
-			velocity.x = 0;
-			velocity.y = 0;
-			stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
-		}else
+	//	if(stepsToEncounter == 0){
+	//		up = down = left = right = false;
+	//		velocity.x = 0;
+	//		velocity.y = 0;
+	//		stepsToEncounter = MathUtils.random(LOWBOUNDSTEPS, HIGHBOUNTSTEPS);
+	//		startBattle.goToBattle();			
+	//	}else
 			spriteBatch.draw(currentFrame, getX(), getY());
-
-
     }
 
     public void update(float delta) {
-
-        float oldX = getX(), oldY = getY();
-        float tileWidth = collisionLayer.getTileWidth(), tileHeight = collisionLayer.getTileHeight();
-
-
         setX(getX() + velocity.x * delta);
-
-        if(velocity.x < 0) {
-
-			try {
-            collisionX = collisionLayer.getCell((int)(getX()/tileWidth), (int)((getY()+getHeight()/2)/tileHeight))
-                .getTile().getProperties().containsKey("blocked");
-			}catch(NullPointerException npe) { // player is off map
-				collisionX = true;
-			}
-
-        }else if(velocity.x > 0) {
-			try {
-            collisionX = collisionLayer.getCell((int)((getX() + getWidth())/tileWidth), (int)((getY()+getHeight()/2)/tileHeight))
-                .getTile().getProperties().containsKey("blocked");		
-			}catch(NullPointerException npe) { // player is off map
-				collisionX = true;
-			}
-        }
-
-        if(collisionX) {
-            setX(oldX);
-            velocity.x = 0;
-        }
-
-
         setY(getY() + velocity.y * delta);
-
-        if(velocity.y < 0) {
-			try {
-            collisionY = collisionLayer.getCell((int)((getX() + getWidth()/2) / tileWidth), (int) (getY() / tileHeight))
-                .getTile().getProperties().containsKey("blocked");
-			}catch(NullPointerException npe) { // player is off map
-				collisionY = true;
-			}
-
-        }else if(velocity.y > 0) {
-			try {
-            collisionY = collisionLayer.getCell((int)((getX() + getWidth()/2) / tileWidth), (int) ((getY() + getHeight()) / tileHeight))
-                .getTile().getProperties().containsKey("blocked");
-			}catch(NullPointerException npe) { // player is off map
-				collisionY = true;
-			}
-
-        }
-
-        if(collisionY) {
-            setY(oldY);
-            velocity.y = 0;
-        }
     }
 
     public Vector2 getVelocity() {
@@ -205,134 +162,6 @@ public class Player extends Sprite implements InputProcessor {
 
     public void setSpeed(float speed) {
         this.speed = speed;
-    }
-
-    public TiledMapTileLayer getCollisionLayer() {
-        return collisionLayer;
-    }
-
-    public void setCollisionLayer(TiledMapTileLayer collisionLayer) {
-        this.collisionLayer = collisionLayer;
-    }
-
-    @Override
-    public boolean keyDown(int keycode) {
-        switch (keycode) {
-            case Keys.W:
-            case Keys.UP:
-                up = true;
-                velocity.y = speed;
-                break;
-            case Keys.S:
-            case Keys.DOWN:
-                down = true;
-                velocity.y = -speed;
-                break;
-            case Keys.A:
-            case Keys.LEFT:
-                left = true;
-                velocity.x = -speed;
-                break;
-            case Keys.D:
-            case Keys.RIGHT:
-                right = true;
-                velocity.x = speed;
-                break;
-			case Keys.ESCAPE:
-				((Game)Gdx.app.getApplicationListener()).setScreen(new SaveScreen(this));
-				break;
-
-            default:
-                break;
-        }
-        return true;
-    }
-
-    @Override
-    public boolean keyUp(int keycode) {
-        switch (keycode) {
-            case Keys.W:
-            case Keys.UP:
-                velocity.y = 0;
-                up = false;
-                break;
-            case Keys.S:
-            case Keys.DOWN:
-                down = false;
-                velocity.y = 0;
-                break;
-            case Keys.A:
-            case Keys.LEFT:
-                velocity.x = 0;
-                left = false;
-                break;
-            case Keys.D:
-            case Keys.RIGHT:
-                right = false;
-                velocity.x = 0;
-                break;
-
-            default:
-                break;
-        }
-        return true;
-    }
-
-    @Override
-    public boolean keyTyped(char character) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        if(screenX < 200) {
-            velocity.x = -speed;
-            left = true;
-        }
-        else if(screenX > Gdx.graphics.getWidth()-200){
-            velocity.x = speed;
-            right = true;
-        }
-        else if(screenY < 200) {
-            velocity.y = speed;
-            up = true;
-        }
-        else if(screenY > Gdx.graphics.getHeight()-200){
-            velocity.y = -speed;
-            down = true;
-        }
-        return true;
-    }
-
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        velocity.x = 0;
-        velocity.y = 0;
-        left = false;
-        right = false;
-        up = false;
-        down = false;
-
-        return true;
-    }
-
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean scrolled(int amount) {
-        // TODO Auto-generated method stub
-        return false;
     }
 
 }

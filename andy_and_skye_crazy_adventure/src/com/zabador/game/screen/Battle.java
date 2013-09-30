@@ -32,6 +32,7 @@ public class Battle implements Screen {
     private Enemy enemy;
 
 	public Battle(Player player, Enemy enemy) {
+		System.out.println("it made it to battle");
 		this.player = player;
         this.enemy = enemy;
 	}
