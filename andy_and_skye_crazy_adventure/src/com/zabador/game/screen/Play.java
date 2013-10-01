@@ -56,6 +56,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
     private TweenManager tweenManager; // used to fade the splash screen
 	public boolean collisionX = false, collisionY = false;
 	private boolean inBattle;
+	private String mapName;
 
 	JSONObject jsonObject;
 	JSONArray jsonArray;
@@ -72,8 +73,8 @@ public class Play implements Screen, StartBattle, InputProcessor{
 	}
 
 	// new game
-	public Play() {
-
+	public Play(String mapName) {
+		this.mapName = mapName;
 	}
 
 	@Override
@@ -117,6 +118,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
 	private void checkForCollisions() {
         float oldX = player.getX(), oldY = player.getY();
         float tileWidth = collisionLayer.getTileWidth(), tileHeight = collisionLayer.getTileHeight();
+		boolean dungeon1 = false;
 
         if(player.velocity.x < 0) {
 
@@ -126,10 +128,21 @@ public class Play implements Screen, StartBattle, InputProcessor{
 			}catch(NullPointerException npe) { // player is off map
 				collisionX = true;
 			}
+			try {
+            dungeon1 = collisionLayer.getCell((int)(player.getX()/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
+                .getTile().getProperties().containsKey("Dungeon1");
+			}catch(NullPointerException npe) { // player is off map
+			}
 
         }else if(player.velocity.x > 0) {
 			try {
             collisionX = collisionLayer.getCell((int)((player.getX() + player.getWidth())/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
+                .getTile().getProperties().containsKey("blocked");		
+			}catch(NullPointerException npe) { // player is off map
+				collisionX = true;
+			}
+			try {
+            dungeon1 = collisionLayer.getCell((int)((player.getX() + player.getWidth())/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
                 .getTile().getProperties().containsKey("blocked");		
 			}catch(NullPointerException npe) { // player is off map
 				collisionX = true;
@@ -148,16 +161,28 @@ public class Play implements Screen, StartBattle, InputProcessor{
 			}catch(NullPointerException npe) { // player is off map
 				collisionY = true;
 			}
+			try {
+            dungeon1 = collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) (player.getY() / tileHeight))
+                .getTile().getProperties().containsKey("blocked");
+			}catch(NullPointerException npe) { // player is off map
+			}
 
         }else if(player.velocity.y > 0) {
 			try {
             collisionY = collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) ((player.getY() + player.getHeight()) / tileHeight))
                 .getTile().getProperties().containsKey("blocked");
 			}catch(NullPointerException npe) { // player is off map
-				collisionY = true;
+			}
+			try {
+            dungeon1 = collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) ((player.getY() + player.getHeight()) / tileHeight))
+                .getTile().getProperties().containsKey("blocked");
+			}catch(NullPointerException npe) { // player is off map
 			}
 
         }
+		if(dungeon1) {
+			((Game)Gdx.app.getApplicationListener()).setScreen(new Play("maps/Dungeon1.tmx"));
+		}
 
         if(collisionY) {
             player.setY(oldY);
@@ -199,7 +224,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
     }
     @Override
     public void show() {
-        map = new TmxMapLoader().load("maps/mountains.tmx");
+        map = new TmxMapLoader().load(mapName);
 		collisionLayer = (TiledMapTileLayer) map.getLayers().get(0);
 
         enemies = new ArrayList<Enemy>();

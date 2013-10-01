@@ -58,7 +58,7 @@ public class Player extends Sprite  {
 
     private float stateTime;
 
-    private float speed = 60 * 2;
+    private float speed = 60 * 3;
 
     public Player(Sprite sprite) {
 
@@ -103,7 +103,6 @@ public class Player extends Sprite  {
 
     @Override
     public void draw(SpriteBatch spriteBatch) {
-        update(Gdx.graphics.getDeltaTime());
 
         // get the correct facing direction
         if(up)
