@@ -57,6 +57,10 @@ public class Play implements Screen, StartBattle, InputProcessor{
 	public boolean collisionX = false, collisionY = false;
 	private boolean inBattle;
 	private String mapName;
+	private ArrayList<String> portals;
+	private int mapX;
+	private int mapY;
+	private String mapFile;
 
 	JSONObject jsonObject;
 	JSONArray jsonArray;
@@ -118,7 +122,8 @@ public class Play implements Screen, StartBattle, InputProcessor{
 	private void checkForCollisions() {
         float oldX = player.getX(), oldY = player.getY();
         float tileWidth = collisionLayer.getTileWidth(), tileHeight = collisionLayer.getTileHeight();
-		boolean dungeon1 = false;
+		boolean dungeon = false;
+		String portalName = null;
 
         if(player.velocity.x < 0) {
 
@@ -128,10 +133,20 @@ public class Play implements Screen, StartBattle, InputProcessor{
 			}catch(NullPointerException npe) { // player is off map
 				collisionX = true;
 			}
-			try {
-            dungeon1 = collisionLayer.getCell((int)(player.getX()/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
-                .getTile().getProperties().containsKey("Dungeon1");
-			}catch(NullPointerException npe) { // player is off map
+
+			// loop through portals to see if we need to warp
+			if(!dungeon){
+				for (int i = 0;i < portals.size();i++ ) {
+					try {
+						if(collisionLayer.getCell((int)(player.getX()/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
+							.getTile().getProperties().containsKey(portals.get(i))) {
+							portalName = portals.get(i);
+								break;
+							}
+					}catch(NullPointerException npe) {
+						collisionX = true;
+					}
+				}
 			}
 
         }else if(player.velocity.x > 0) {
@@ -141,13 +156,22 @@ public class Play implements Screen, StartBattle, InputProcessor{
 			}catch(NullPointerException npe) { // player is off map
 				collisionX = true;
 			}
-			try {
-            dungeon1 = collisionLayer.getCell((int)((player.getX() + player.getWidth())/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
-                .getTile().getProperties().containsKey("blocked");		
-			}catch(NullPointerException npe) { // player is off map
-				collisionX = true;
+
+			// loop through portals to see if we need to warp
+			if(!dungeon){
+				for (int i = 0;i < portals.size();i++ ) {
+					try {
+						if(collisionLayer.getCell((int)((player.getX() + player.getWidth())/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
+							.getTile().getProperties().containsKey(portals.get(i))){
+							portalName = portals.get(i);
+								break;
+							}
+					}catch(NullPointerException npe) { // player is off map
+						collisionX = true;
+					}
+				}
 			}
-        }
+		}
 
         if(collisionX) {
             player.setX(oldX);
@@ -161,10 +185,20 @@ public class Play implements Screen, StartBattle, InputProcessor{
 			}catch(NullPointerException npe) { // player is off map
 				collisionY = true;
 			}
-			try {
-            dungeon1 = collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) (player.getY() / tileHeight))
-                .getTile().getProperties().containsKey("blocked");
-			}catch(NullPointerException npe) { // player is off map
+			
+			// loop through portals to see if we need to warp
+			if(!dungeon){
+				for (int i = 0;i < portals.size();i++ ) {
+					try {
+						if(collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) (player.getY() / tileHeight))
+								.getTile().getProperties().containsKey(portals.get(i))) {
+							portalName = portals.get(i);
+							break;
+								}
+					}catch(NullPointerException npe) { // player is off map
+						collisionY = true;
+					}
+				}
 			}
 
         }else if(player.velocity.y > 0) {
@@ -173,24 +207,32 @@ public class Play implements Screen, StartBattle, InputProcessor{
                 .getTile().getProperties().containsKey("blocked");
 			}catch(NullPointerException npe) { // player is off map
 			}
-			try {
-            dungeon1 = collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) ((player.getY() + player.getHeight()) / tileHeight))
-                .getTile().getProperties().containsKey("blocked");
-			}catch(NullPointerException npe) { // player is off map
+
+			// loop through portals to see if we need to warp
+			if(!dungeon){
+				for (int i = 0;i < portals.size();i++ ) {
+					try {
+						if(collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) ((player.getY() + player.getHeight()) / tileHeight))
+								.getTile().getProperties().containsKey(portals.get(i))) {
+							portalName = portals.get(i);
+							break;
+								}
+					}catch(NullPointerException npe) { // player is off map
+						collisionY = true;
+					}
+				}
 			}
 
         }
-		if(dungeon1) {
-			((Game)Gdx.app.getApplicationListener()).setScreen(new Play("maps/Dungeon1.tmx"));
-		}
 
         if(collisionY) {
             player.setY(oldY);
             player.velocity.y = 0;
         }
 
-
-
+		if(dungeon) {
+			((Game)Gdx.app.getApplicationListener()).setScreen(new Play(portalName));
+		}
 	}
 
 	public void goToBattle() {
@@ -224,10 +266,9 @@ public class Play implements Screen, StartBattle, InputProcessor{
     }
     @Override
     public void show() {
-        map = new TmxMapLoader().load(mapName);
-		collisionLayer = (TiledMapTileLayer) map.getLayers().get(0);
 
         enemies = new ArrayList<Enemy>();
+		portals = new ArrayList<String>();
 
         tweenManager = new TweenManager();
         Tween.registerAccessor(Play.class, new ScreenAccessor());
@@ -246,7 +287,30 @@ public class Play implements Screen, StartBattle, InputProcessor{
                             monster.getInt("hp")));
             }
         }catch(Exception e){System.out.println("Error getting feed " + e.getStackTrace());}
+		
+        // build the array of portals on the map
+        try {
+			JSONObject mapObject = new JSONObject();
+            JSONObject mapsFeed = new JSONObject(Gdx.files.internal("feeds/maps.json").readString());
+            JSONArray mapsArray = mapsFeed.getJSONArray("maps");
+            for (int i = 0; i<mapsArray.length(); i++ ) {
+                if(mapsArray.getJSONObject(i).getString("name").equals(mapName)) {
+					mapObject = mapsArray.getJSONObject(i);
+					break;
+				}
+            }
+			mapFile = mapObject.getString("file");
+			mapX = mapObject.getInt("X");
+			mapY = mapObject.getInt("Y");
+			JSONArray portalArray = mapObject.getJSONArray("portals");
+			for(int i = 0;i<portalArray.length();i++) {
+				portals.add(portalArray.getJSONObject(i).getString("name"));
+			}
+        }catch(Exception e){System.out.println("Error getting feed " + e.getStackTrace());}
         
+        map = new TmxMapLoader().load(mapFile);
+		collisionLayer = (TiledMapTileLayer) map.getLayers().get(0);
+
         renderer = new OrthogonalTiledMapRenderer(map);
         
         camera = new OrthographicCamera();
