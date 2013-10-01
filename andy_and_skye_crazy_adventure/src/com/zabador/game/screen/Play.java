@@ -66,13 +66,15 @@ public class Play implements Screen, StartBattle, InputProcessor{
 	JSONArray jsonArray;
 
 	//returning from battle scene
-	public Play(Player player) {
+	public Play(String mapName, Player player) {
 		this.player = player;
+		this.mapName = mapName;
 	}
 
 	// loading a saved game
 	public Play(Preferences prefs) {
 		this.prefs = prefs;
+		this.mapName =  new String(Base64Coder.decodeString(prefs.getString("map")));
 		loading = true;
 	}
 
@@ -140,6 +142,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
 					try {
 						if(collisionLayer.getCell((int)(player.getX()/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
 							.getTile().getProperties().containsKey(portals.get(i))) {
+							dungeon = true;
 							portalName = portals.get(i);
 								break;
 							}
@@ -163,6 +166,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
 					try {
 						if(collisionLayer.getCell((int)((player.getX() + player.getWidth())/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
 							.getTile().getProperties().containsKey(portals.get(i))){
+							dungeon = true;
 							portalName = portals.get(i);
 								break;
 							}
@@ -192,6 +196,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
 					try {
 						if(collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) (player.getY() / tileHeight))
 								.getTile().getProperties().containsKey(portals.get(i))) {
+							dungeon = true;
 							portalName = portals.get(i);
 							break;
 								}
@@ -214,6 +219,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
 					try {
 						if(collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) ((player.getY() + player.getHeight()) / tileHeight))
 								.getTile().getProperties().containsKey(portals.get(i))) {
+							dungeon = true;
 							portalName = portals.get(i);
 							break;
 								}
@@ -246,7 +252,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
 						System.out.println("in onevent");
 						int i = MathUtils.random(enemies.size() - 1);
 						((Game) Gdx.app.getApplicationListener())
-								.setScreen(new Battle(player, enemies.get(i)));
+								.setScreen(new Battle(mapName, player, enemies.get(i)));
 					}
 
 			}).start(tweenManager);
@@ -325,7 +331,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
                             new String(Base64Coder.decodeString(prefs
                                     .getString("playerY")))));
             }else
-                player.setPosition(46 * collisionLayer.getTileWidth(), 10 * collisionLayer.getTileHeight());
+                player.setPosition(mapX * collisionLayer.getTileWidth(), mapY * collisionLayer.getTileHeight());
         }
         else {// player has returned from a battle scene
 			inBattle = false;
@@ -392,7 +398,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
                 player.velocity.x = player.getSpeed();
                 break;
 			case Keys.ESCAPE:
-				((Game)Gdx.app.getApplicationListener()).setScreen(new SaveScreen(player));
+				((Game)Gdx.app.getApplicationListener()).setScreen(new SaveScreen(mapName,player));
 				break;
 
             default:

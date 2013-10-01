@@ -30,9 +30,11 @@ public class Battle implements Screen {
     private BitmapFont white, black;
 	private Player player;
     private Enemy enemy;
+	private String mapName;
 
-	public Battle(Player player, Enemy enemy) {
+	public Battle(String mapName, Player player, Enemy enemy) {
 		System.out.println("it made it to battle");
+		this.mapName = mapName;
 		this.player = player;
         this.enemy = enemy;
 	}
@@ -79,7 +81,7 @@ public class Battle implements Screen {
         buttonExit.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-				((Game)Gdx.app.getApplicationListener()).setScreen(new Play(player));
+				((Game)Gdx.app.getApplicationListener()).setScreen(new Play(mapName, player));
             }
         });
 

@@ -15,7 +15,8 @@
         },
         {
             "name": "Dungeon1",
-            "X": 60,
+			"file": "maps/Dungeon1.tmx",
+            "X": 10,
             "Y": 30,
 			"portals": [
 				{

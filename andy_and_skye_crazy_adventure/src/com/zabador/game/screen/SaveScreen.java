@@ -32,8 +32,10 @@ public class SaveScreen implements Screen {
     private Label heading;
     private BitmapFont white, black;
 	private Player player;
+	private String mapName;
 
-	public SaveScreen(Player player) {
+	public SaveScreen(String mapName, Player player) {
+		this.mapName = mapName;
 		this.player = player;
 	}
 
@@ -79,7 +81,7 @@ public class SaveScreen implements Screen {
         buttonCANCEL.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-				((Game)Gdx.app.getApplicationListener()).setScreen(new Play(player));
+				((Game)Gdx.app.getApplicationListener()).setScreen(new Play(mapName,player));
             }
         });
 
@@ -91,6 +93,7 @@ public class SaveScreen implements Screen {
 				Preferences prefs = Gdx.app.getPreferences("SaveState");
 				prefs.putString("playerX",Base64Coder.encodeString(Float.toString(player.getX())));
 				prefs.putString("playerY",Base64Coder.encodeString(Float.toString(player.getY())));
+				prefs.putString("map",Base64Coder.encodeString(mapName));
 				prefs.flush(); Gdx.app.exit();
             }
         });
