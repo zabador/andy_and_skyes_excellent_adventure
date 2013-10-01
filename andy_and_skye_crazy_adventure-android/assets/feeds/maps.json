@@ -1,0 +1,26 @@
+{
+    "maps": [
+        {
+            "name": "World",
+			"file": "maps/mountains.tmx",
+            "X": 46,
+            "Y": 10,
+			"portals": [
+				{
+					"name": "Dungeon1"
+				},
+				{
+					"name": "Dungeon2"
+				}]
+        },
+        {
+            "name": "Dungeon1",
+            "X": 60,
+            "Y": 30,
+			"portals": [
+				{
+					"name": "World"
+				}]
+        }
+    ]     
+}
