@@ -1,24 +1,18 @@
 package com.zabador.game.entities;
 
-import java.util.ArrayList;
-
 public class Warp {
 
     private String name;
-    private String file;
     private int mapX;
     private int mapY;
-    private ArrayList<String> portals;
 
     /**
      *
      */
-    public Warp(String name, String file, int mapX, int mapY, ArrayList<String> portals) {
+    public Warp(String name, int mapX, int mapY) {
         this.name = name;
-        this.file = file;
         this.mapX = mapX;
         this.mapY = mapY;
-        this.portals = portals;
     }
 
     /**
@@ -33,20 +27,6 @@ public class Warp {
      */
     public void setName(String name) {
         this.name = name;
-    }
-
-    /**
-     * @return the file
-     */
-    public String getFile() {
-        return file;
-    }
-
-    /**
-     * @param file the file to set
-     */
-    public void setFile(String file) {
-        this.file = file;
     }
 
     /**
@@ -77,17 +57,4 @@ public class Warp {
         this.mapY = mapY;
     }
 
-    /**
-     * @return the portals
-     */
-    public ArrayList<String> getPortals() {
-        return portals;
-    }
-
-    /**
-     * @param portals the portals to set
-     */
-    public void setPortals(ArrayList<String> portals) {
-        this.portals = portals;
-    }
 }

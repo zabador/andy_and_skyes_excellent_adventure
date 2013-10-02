@@ -3,24 +3,30 @@
         {
             "name": "World",
 			"file": "maps/mountains.tmx",
-            "X": 46,
-            "Y": 10,
+            "X": 29,
+            "Y": 17,
 			"portals": [
 				{
-					"name": "Dungeon1"
+					"name": "Dungeon1",
+                    "mapX": 28,
+                    "mapY": 17 
 				},
 				{
-					"name": "Dungeon2"
+					"name": "Dungeon2",
+                    "mapX": 10,
+                    "mapY": 10
 				}]
         },
         {
             "name": "Dungeon1",
 			"file": "maps/Dungeon1.tmx",
-            "X": 10,
-            "Y": 30,
+            "X": 28,
+            "Y": 17,
 			"portals": [
 				{
-					"name": "World"
+					"name": "World",
+                    "mapX": 5,
+                    "mapY": 3 
 				}]
         }
     ]     

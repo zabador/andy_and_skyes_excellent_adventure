@@ -34,6 +34,7 @@ import com.badlogic.gdx.utils.Base64Coder;
 import com.zabador.game.StartBattle;
 import com.zabador.game.entities.Enemy;
 import com.zabador.game.entities.Player;
+import com.zabador.game.entities.Warp;
 import com.zabador.game.tween.ScreenAccessor;
 import com.zabador.game.tween.SpriteAccessor;
 import com.zabador.game.ui.MainUi;
@@ -43,139 +44,147 @@ import org.json.JSONObject;
 
 public class Play implements Screen, StartBattle, InputProcessor{
 
-	private TiledMap map;
-	private OrthogonalTiledMapRenderer renderer;
-	private OrthographicCamera camera;
-	private TiledMapTileLayer collisionLayer;
-	private Player player;
-	private MainUi mainui;
-	private Preferences prefs;
-	private boolean loading = false; // for when user is loading a saved game
-	private Music music;
-	private ArrayList<Enemy> enemies;
+    private TiledMap map;
+    private OrthogonalTiledMapRenderer renderer;
+    private OrthographicCamera camera;
+    private TiledMapTileLayer collisionLayer;
+    private Player player;
+    private MainUi mainui;
+    private Preferences prefs;
+    private boolean loading = false; // for when user is loading a saved game
+    private Music music;
+    private ArrayList<Enemy> enemies;
     private TweenManager tweenManager; // used to fade the splash screen
-	public boolean collisionX = false, collisionY = false;
-	private boolean inBattle;
-	private String mapName;
-	private ArrayList<String> portals;
-	private int mapX;
-	private int mapY;
-	private String mapFile;
+    public boolean collisionX = false, collisionY = false;
+    private boolean inBattle;
+    private String mapName;
+    private ArrayList<Warp> portals;
+    private int mapX = 0;
+    private int mapY = 0;
+    private String mapFile;
+    private Warp warpObject;
 
-	JSONObject jsonObject;
-	JSONArray jsonArray;
+    JSONObject jsonObject;
+    JSONArray jsonArray;
 
-	//returning from battle scene
-	public Play(String mapName, Player player) {
-		this.player = player;
-		this.mapName = mapName;
-	}
+    //returning from battle scene
+    public Play(String mapName, Player player) {
+        this.player = player;
+        this.mapName = mapName;
+    }
 
-	// loading a saved game
-	public Play(Preferences prefs) {
-		this.prefs = prefs;
-		this.mapName =  new String(Base64Coder.decodeString(prefs.getString("map")));
-		loading = true;
-	}
+    // loading a saved game
+    public Play(Preferences prefs) {
+        this.prefs = prefs;
+        this.mapName =  new String(Base64Coder.decodeString(prefs.getString("map")));
+        loading = true;
+    }
 
-	// new game
-	public Play(String mapName) {
-		this.mapName = mapName;
-	}
+    // new game
+    public Play(String mapName) {
+        this.mapName = mapName;
+    }
 
-	@Override
-	public void render(float delta) {
-		Gdx.gl.glClearColor(0, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    // warping
+    public Play(Warp warp) {
+        this.mapName = warp.getName();
+        this.mapX = warp.getMapX();
+        this.mapY = warp.getMapY();
+    }
+
+    @Override
+    public void render(float delta) {
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         tweenManager.update(delta);
-		
-		renderer.setView(camera);
-		renderer.render();
 
-		// -100 becuase of the size of the character ui screen at the botton
-		camera.position.set(player.getX() + player.getWidth() / 2,
-				(player.getY() + player.getHeight() / 2) - 100, 0);
-		camera.update();
+        renderer.setView(camera);
+        renderer.render();
 
-		player.update(delta);
-		checkforBattle();
-		checkForCollisions();
+        // -100 becuase of the size of the character ui screen at the botton
+        camera.position.set(player.getX() + player.getWidth() / 2,
+                (player.getY() + player.getHeight() / 2) - 100, 0);
+        camera.update();
 
-		renderer.getSpriteBatch().begin();
-		if(!inBattle)
-			player.draw(renderer.getSpriteBatch());
-		renderer.getSpriteBatch().end();
-		mainui.draw();
-	}
+        player.update(delta);
+        checkforBattle();
+        checkForCollisions();
 
-	private void checkforBattle() {
-		if(player.getStepsToEncounter() <= 0){
-			inBattle = true;
-			player.up = player.down = player.left = player.right = false;
-			player.velocity.x = 0;
-			player.velocity.y = 0;
-			player.setStepsToEncounter(MathUtils.random(player.LOWBOUNDSTEPS, player.HIGHBOUNTSTEPS));
-			goToBattle();
-		}
+        renderer.getSpriteBatch().begin();
+        if(!inBattle)
+            player.draw(renderer.getSpriteBatch());
+        renderer.getSpriteBatch().end();
+        mainui.draw();
+    }
 
-	}
+    private void checkforBattle() {
+        if(player.getStepsToEncounter() <= 0){
+            inBattle = true;
+            player.up = player.down = player.left = player.right = false;
+            player.velocity.x = 0;
+            player.velocity.y = 0;
+            player.setStepsToEncounter(MathUtils.random(player.LOWBOUNDSTEPS, player.HIGHBOUNTSTEPS));
+            goToBattle();
+        }
 
-	private void checkForCollisions() {
+    }
+
+    private void checkForCollisions() {
         float oldX = player.getX(), oldY = player.getY();
         float tileWidth = collisionLayer.getTileWidth(), tileHeight = collisionLayer.getTileHeight();
-		boolean dungeon = false;
-		String portalName = null;
+        boolean warp = false;
+        String portalName = null;
 
         if(player.velocity.x < 0) {
 
-			try {
-            collisionX = collisionLayer.getCell((int)(player.getX()/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
-                .getTile().getProperties().containsKey("blocked");
-			}catch(NullPointerException npe) { // player is off map
-				collisionX = true;
-			}
+            try {
+                collisionX = collisionLayer.getCell((int)(player.getX()/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
+                    .getTile().getProperties().containsKey("blocked");
+            }catch(NullPointerException npe) { // player is off map
+                collisionX = true;
+            }
 
-			// loop through portals to see if we need to warp
-			if(!dungeon){
-				for (int i = 0;i < portals.size();i++ ) {
-					try {
-						if(collisionLayer.getCell((int)(player.getX()/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
-							.getTile().getProperties().containsKey(portals.get(i))) {
-							dungeon = true;
-							portalName = portals.get(i);
-								break;
-							}
-					}catch(NullPointerException npe) {
-						collisionX = true;
-					}
-				}
-			}
+            // loop through portals to see if we need to warp
+            if(!warp){
+                for (int i = 0;i < portals.size();i++ ) {
+                    try {
+                        if(collisionLayer.getCell((int)(player.getX()/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
+                                .getTile().getProperties().containsKey(portals.get(i).getName())) {
+                            warp = true;
+                            warpObject = portals.get(i);
+                            break;
+                                }
+                    }catch(NullPointerException npe) {
+                        collisionX = true;
+                    }
+                }
+            }
 
         }else if(player.velocity.x > 0) {
-			try {
-            collisionX = collisionLayer.getCell((int)((player.getX() + player.getWidth())/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
-                .getTile().getProperties().containsKey("blocked");		
-			}catch(NullPointerException npe) { // player is off map
-				collisionX = true;
-			}
+            try {
+                collisionX = collisionLayer.getCell((int)((player.getX() + player.getWidth())/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
+                    .getTile().getProperties().containsKey("blocked");      
+            }catch(NullPointerException npe) { // player is off map
+                collisionX = true;
+            }
 
-			// loop through portals to see if we need to warp
-			if(!dungeon){
-				for (int i = 0;i < portals.size();i++ ) {
-					try {
-						if(collisionLayer.getCell((int)((player.getX() + player.getWidth())/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
-							.getTile().getProperties().containsKey(portals.get(i))){
-							dungeon = true;
-							portalName = portals.get(i);
-								break;
-							}
-					}catch(NullPointerException npe) { // player is off map
-						collisionX = true;
-					}
-				}
-			}
-		}
+            // loop through portals to see if we need to warp
+            if(!warp){
+                for (int i = 0;i < portals.size();i++ ) {
+                    try {
+                        if(collisionLayer.getCell((int)((player.getX() + player.getWidth())/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
+                                .getTile().getProperties().containsKey(portals.get(i).getName())){
+                            warp = true;
+                            warpObject = portals.get(i);
+                            break;
+                                }
+                    }catch(NullPointerException npe) { // player is off map
+                        collisionX = true;
+                    }
+                }
+            }
+        }
 
         if(collisionX) {
             player.setX(oldX);
@@ -183,51 +192,51 @@ public class Play implements Screen, StartBattle, InputProcessor{
         }
 
         if(player.velocity.y < 0) {
-			try {
-            collisionY = collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) (player.getY() / tileHeight))
-                .getTile().getProperties().containsKey("blocked");
-			}catch(NullPointerException npe) { // player is off map
-				collisionY = true;
-			}
-			
-			// loop through portals to see if we need to warp
-			if(!dungeon){
-				for (int i = 0;i < portals.size();i++ ) {
-					try {
-						if(collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) (player.getY() / tileHeight))
-								.getTile().getProperties().containsKey(portals.get(i))) {
-							dungeon = true;
-							portalName = portals.get(i);
-							break;
-								}
-					}catch(NullPointerException npe) { // player is off map
-						collisionY = true;
-					}
-				}
-			}
+            try {
+                collisionY = collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) (player.getY() / tileHeight))
+                    .getTile().getProperties().containsKey("blocked");
+            }catch(NullPointerException npe) { // player is off map
+                collisionY = true;
+            }
+
+            // loop through portals to see if we need to warp
+            if(!warp){
+                for (int i = 0;i < portals.size();i++ ) {
+                    try {
+                        if(collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) (player.getY() / tileHeight))
+                                .getTile().getProperties().containsKey(portals.get(i).getName())) {
+                            warp = true;
+                            warpObject = portals.get(i);
+                            break;
+                                }
+                    }catch(NullPointerException npe) { // player is off map
+                        collisionY = true;
+                    }
+                }
+            }
 
         }else if(player.velocity.y > 0) {
-			try {
-            collisionY = collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) ((player.getY() + player.getHeight()) / tileHeight))
-                .getTile().getProperties().containsKey("blocked");
-			}catch(NullPointerException npe) { // player is off map
-			}
+            try {
+                collisionY = collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) ((player.getY() + player.getHeight()) / tileHeight))
+                    .getTile().getProperties().containsKey("blocked");
+            }catch(NullPointerException npe) { // player is off map
+            }
 
-			// loop through portals to see if we need to warp
-			if(!dungeon){
-				for (int i = 0;i < portals.size();i++ ) {
-					try {
-						if(collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) ((player.getY() + player.getHeight()) / tileHeight))
-								.getTile().getProperties().containsKey(portals.get(i))) {
-							dungeon = true;
-							portalName = portals.get(i);
-							break;
-								}
-					}catch(NullPointerException npe) { // player is off map
-						collisionY = true;
-					}
-				}
-			}
+            // loop through portals to see if we need to warp
+            if(!warp){
+                for (int i = 0;i < portals.size();i++ ) {
+                    try {
+                        if(collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) ((player.getY() + player.getHeight()) / tileHeight))
+                                .getTile().getProperties().containsKey(portals.get(i).getName())) {
+                            warp = true;
+                            warpObject = portals.get(i);
+                            break;
+                                }
+                    }catch(NullPointerException npe) { // player is off map
+                        collisionY = true;
+                    }
+                }
+            }
 
         }
 
@@ -236,36 +245,36 @@ public class Play implements Screen, StartBattle, InputProcessor{
             player.velocity.y = 0;
         }
 
-		if(dungeon) {
-			((Game)Gdx.app.getApplicationListener()).setScreen(new Play(portalName));
-		}
-	}
+        if(warp) {
+            ((Game)Gdx.app.getApplicationListener()).setScreen(new Play(warpObject));
+        }
+    }
 
-	public void goToBattle() {
-		System.out.println("go to battle was called");
-		Tween.set(this, ScreenAccessor.ALPHA).target(1).start(tweenManager);
-		System.out.println("after set");
-		Tween.to(this, ScreenAccessor.ALPHA, 1f).target(0).delay(0)
-				.setCallback(new TweenCallback() {
-					@Override
-					public void onEvent(int type, BaseTween<?> source) {
-						System.out.println("in onevent");
-						int i = MathUtils.random(enemies.size() - 1);
-						((Game) Gdx.app.getApplicationListener())
-								.setScreen(new Battle(mapName, player, enemies.get(i)));
-					}
+    public void goToBattle() {
+        System.out.println("go to battle was called");
+        Tween.set(this, ScreenAccessor.ALPHA).target(1).start(tweenManager);
+        System.out.println("after set");
+        Tween.to(this, ScreenAccessor.ALPHA, 1f).target(0).delay(0)
+            .setCallback(new TweenCallback() {
+                @Override
+                public void onEvent(int type, BaseTween<?> source) {
+                    System.out.println("in onevent");
+                    int i = MathUtils.random(enemies.size() - 1);
+                    ((Game) Gdx.app.getApplicationListener())
+                .setScreen(new Battle(mapName, player, enemies.get(i)));
+                }
 
-			}).start(tweenManager);
-			
-		System.out.println("after tween");
-	}
+            }).start(tweenManager);
 
-	public SpriteBatch getSpriteBatch() {
-		return renderer.getSpriteBatch();
-	}
+        System.out.println("after tween");
+    }
+
+    public SpriteBatch getSpriteBatch() {
+        return renderer.getSpriteBatch();
+    }
     @Override
     public void resize(int width, int height) {
-        
+
         camera.viewportHeight = height;
         camera.viewportWidth = width;
         camera.update();
@@ -274,7 +283,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
     public void show() {
 
         enemies = new ArrayList<Enemy>();
-		portals = new ArrayList<String>();
+        portals = new ArrayList<Warp>();
 
         tweenManager = new TweenManager();
         Tween.registerAccessor(Play.class, new ScreenAccessor());
@@ -293,35 +302,41 @@ public class Play implements Screen, StartBattle, InputProcessor{
                             monster.getInt("hp")));
             }
         }catch(Exception e){System.out.println("Error getting feed " + e.getStackTrace());}
-		
+
         // build the array of portals on the map
         try {
-			JSONObject mapObject = new JSONObject();
+            JSONObject mapObject = new JSONObject();
             JSONObject mapsFeed = new JSONObject(Gdx.files.internal("feeds/maps.json").readString());
             JSONArray mapsArray = mapsFeed.getJSONArray("maps");
             for (int i = 0; i<mapsArray.length(); i++ ) {
                 if(mapsArray.getJSONObject(i).getString("name").equals(mapName)) {
-					mapObject = mapsArray.getJSONObject(i);
-					break;
-				}
+                    mapObject = mapsArray.getJSONObject(i);
+                    break;
+                }
             }
-			mapFile = mapObject.getString("file");
-			mapX = mapObject.getInt("X");
-			mapY = mapObject.getInt("Y");
-			JSONArray portalArray = mapObject.getJSONArray("portals");
-			for(int i = 0;i<portalArray.length();i++) {
-				portals.add(portalArray.getJSONObject(i).getString("name"));
-			}
+            mapFile = mapObject.getString("file");
+            if(mapX == 0 && mapY == 0) {
+                mapX = mapObject.getInt("X");
+                mapY = mapObject.getInt("Y");
+            }
+            JSONArray portalArray = mapObject.getJSONArray("portals");
+            for(int i = 0;i<portalArray.length();i++) {
+                JSONObject warp = portalArray.getJSONObject(i);
+                portals.add(new Warp(warp.getString("name"),
+                            warp.getInt("mapX"),
+                            warp.getInt("mapY")));
+
+            }
         }catch(Exception e){System.out.println("Error getting feed " + e.getStackTrace());}
-        
+
         map = new TmxMapLoader().load(mapFile);
-		collisionLayer = (TiledMapTileLayer) map.getLayers().get(0);
+        collisionLayer = (TiledMapTileLayer) map.getLayers().get(0);
 
         renderer = new OrthogonalTiledMapRenderer(map);
-        
+
         camera = new OrthographicCamera();
         //camera.zoom = .5f;
-    
+
         if(player == null){ // it is a brand new game
             player = new Player(new Sprite(new Texture("imgs/player.png")));
             if(loading) { // load player from saved preferences
@@ -330,13 +345,15 @@ public class Play implements Screen, StartBattle, InputProcessor{
                                     .getString("playerX")))), Float.parseFloat(
                             new String(Base64Coder.decodeString(prefs
                                     .getString("playerY")))));
-            }else
-                player.setPosition(mapX * collisionLayer.getTileWidth(), mapY * collisionLayer.getTileHeight());
+            }else {
+                player.setPosition(mapX * collisionLayer.getTileWidth(), (collisionLayer.getHeight()-mapY) * collisionLayer.getTileHeight());
+
+            }
         }
         else {// player has returned from a battle scene
-			inBattle = false;
+            inBattle = false;
             player.setPosition(player.getX(),player.getY());
-		}
+        }
 
         // tell game where the input processor is
         Gdx.input.setInputProcessor(this);
@@ -344,7 +361,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
         music = Gdx.audio.newMusic(Gdx.files.internal("sound/Zelda_Theme.mp3"));
         music.setLooping(true);
         music.play();
-        
+
         mainui = new MainUi();
 
     }
@@ -367,15 +384,14 @@ public class Play implements Screen, StartBattle, InputProcessor{
 
     @Override
     public void dispose() {
-//		tweenManager.killAll();
         map.dispose();
         renderer.dispose();
         player.getTexture().dispose();
         music.dispose();
-	}
+    }
 
-	@Override
-	public boolean keyDown(int keycode) {
+    @Override
+    public boolean keyDown(int keycode) {
         if(!inBattle) {
             switch (keycode) {
                 case Keys.W:
@@ -408,10 +424,10 @@ public class Play implements Screen, StartBattle, InputProcessor{
 
         }
         return true;
-	}
+    }
 
-	@Override
-	public boolean keyUp(int keycode) {
+    @Override
+    public boolean keyUp(int keycode) {
         switch (keycode) {
             case Keys.W:
             case Keys.UP:
@@ -438,16 +454,16 @@ public class Play implements Screen, StartBattle, InputProcessor{
                 break;
         }
         return true;
-	}
+    }
 
-	@Override
-	public boolean keyTyped(char character) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    @Override
+    public boolean keyTyped(char character) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
-	@Override
-	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         if(!inBattle) {
             if(screenX < 200) {
                 player.velocity.x = -player.getSpeed();
@@ -468,10 +484,10 @@ public class Play implements Screen, StartBattle, InputProcessor{
 
         }
         return true;
-	}
+    }
 
-	@Override
-	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         player.velocity.x = 0;
         player.velocity.y = 0;
         player.left = false;
@@ -480,24 +496,24 @@ public class Play implements Screen, StartBattle, InputProcessor{
         player.down = false;
 
         return true;
-	}
+    }
 
-	@Override
-	public boolean touchDragged(int screenX, int screenY, int pointer) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
-	@Override
-	public boolean mouseMoved(int screenX, int screenY) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
-	@Override
-	public boolean scrolled(int amount) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    @Override
+    public boolean scrolled(int amount) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
 }
