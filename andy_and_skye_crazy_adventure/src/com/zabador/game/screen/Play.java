@@ -111,10 +111,10 @@ public class Play implements Screen, StartBattle, InputProcessor{
 
 	private void checkforBattle() {
 		if(player.getStepsToEncounter() <= 0){
+			inBattle = true;
 			player.up = player.down = player.left = player.right = false;
 			player.velocity.x = 0;
 			player.velocity.y = 0;
-			inBattle = true;
 			player.setStepsToEncounter(MathUtils.random(player.LOWBOUNDSTEPS, player.HIGHBOUNTSTEPS));
 			goToBattle();
 		}
@@ -376,35 +376,38 @@ public class Play implements Screen, StartBattle, InputProcessor{
 
 	@Override
 	public boolean keyDown(int keycode) {
-        switch (keycode) {
-            case Keys.W:
-            case Keys.UP:
-                player.up = true;
-                player.velocity.y = player.getSpeed();
-                break;
-            case Keys.S:
-            case Keys.DOWN:
-                player.down = true;
-                player.velocity.y = -player.getSpeed();
-                break;
-            case Keys.A:
-            case Keys.LEFT:
-                player.left = true;
-                player.velocity.x = -player.getSpeed();
-                break;
-            case Keys.D:
-            case Keys.RIGHT:
-                player.right = true;
-                player.velocity.x = player.getSpeed();
-                break;
-			case Keys.ESCAPE:
-				((Game)Gdx.app.getApplicationListener()).setScreen(new SaveScreen(mapName,player));
-				break;
+        if(!inBattle) {
+            switch (keycode) {
+                case Keys.W:
+                case Keys.UP:
+                    player.up = true;
+                    player.velocity.y = player.getSpeed();
+                    break;
+                case Keys.S:
+                case Keys.DOWN:
+                    player.down = true;
+                    player.velocity.y = -player.getSpeed();
+                    break;
+                case Keys.A:
+                case Keys.LEFT:
+                    player.left = true;
+                    player.velocity.x = -player.getSpeed();
+                    break;
+                case Keys.D:
+                case Keys.RIGHT:
+                    player.right = true;
+                    player.velocity.x = player.getSpeed();
+                    break;
+                case Keys.ESCAPE:
+                    ((Game)Gdx.app.getApplicationListener()).setScreen(new SaveScreen(mapName,player));
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
+            }
+
         }
-		return true;
+        return true;
 	}
 
 	@Override
@@ -445,21 +448,24 @@ public class Play implements Screen, StartBattle, InputProcessor{
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        if(screenX < 200) {
-            player.velocity.x = -player.getSpeed();
-            player.left = true;
-        }
-        else if(screenX > Gdx.graphics.getWidth()-200){
-            player.velocity.x = player.getSpeed();
-            player.right = true;
-        }
-        else if(screenY < 200) {
-            player.velocity.y = player.getSpeed();
-            player.up = true;
-        }
-        else if(screenY > Gdx.graphics.getHeight()-200){
-            player.velocity.y = -player.getSpeed();
-            player.down = true;
+        if(!inBattle) {
+            if(screenX < 200) {
+                player.velocity.x = -player.getSpeed();
+                player.left = true;
+            }
+            else if(screenX > Gdx.graphics.getWidth()-200){
+                player.velocity.x = player.getSpeed();
+                player.right = true;
+            }
+            else if(screenY < 200) {
+                player.velocity.y = player.getSpeed();
+                player.up = true;
+            }
+            else if(screenY > Gdx.graphics.getHeight()-200){
+                player.velocity.y = -player.getSpeed();
+                player.down = true;
+            }
+
         }
         return true;
 	}
