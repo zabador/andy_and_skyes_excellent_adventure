@@ -18,6 +18,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.zabador.game.entities.Enemy;
 import com.zabador.game.entities.Player;
+import com.zabador.game.ui.MainUi;
 
 public class Battle implements Screen {
 
@@ -31,6 +32,7 @@ public class Battle implements Screen {
 	private Player player;
     private Enemy enemy;
 	private String mapName;
+    private MainUi mainui;
 
 	public Battle(String mapName, Player player, Enemy enemy) {
 		System.out.println("it made it to battle");
@@ -44,6 +46,8 @@ public class Battle implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        mainui.draw();
+
         stage.act(delta);
         Table.drawDebug(stage); // TODO delete when done debugging menu layout
         stage.draw();
@@ -54,6 +58,7 @@ public class Battle implements Screen {
     public void show() {
 
         stage = new Stage();
+        mainui = new MainUi();
 
         Gdx.input.setInputProcessor(stage); // listen for the button presses
 
