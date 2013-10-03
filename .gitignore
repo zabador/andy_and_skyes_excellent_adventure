@@ -6,7 +6,7 @@
 *.swp
 
 # Bin Files #
-bin/*
+*/bin/*
 
 #log files
 *.log
