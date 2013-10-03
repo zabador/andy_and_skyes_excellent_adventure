@@ -20,7 +20,6 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.sun.corba.se.impl.oa.poa.ActiveObjectMap.Key;
 import com.zabador.game.StartBattle;
 import com.zabador.game.screen.Battle;
 import com.zabador.game.screen.MainMenu;
