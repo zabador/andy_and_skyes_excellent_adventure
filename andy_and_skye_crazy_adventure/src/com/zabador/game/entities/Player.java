@@ -25,6 +25,7 @@ import com.zabador.game.screen.Battle;
 import com.zabador.game.screen.MainMenu;
 import com.zabador.game.screen.Play;
 import com.zabador.game.screen.SaveScreen;
+import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.zabador.game.tween.SpriteAccessor;
 
 public class Player extends Sprite  {
@@ -49,6 +50,8 @@ public class Player extends Sprite  {
 
 	public final int LOWBOUNDSTEPS = 200;
 	public final int HIGHBOUNTSTEPS = 800;
+
+    public boolean blocked;
 
 	private boolean isBlocked;
 
@@ -116,7 +119,12 @@ public class Player extends Sprite  {
 		spriteBatch.draw(currentFrame, getX(), getY());
     }
 
-    public void update(float delta) {
+    public void update(float delta, boolean isAndroid, Touchpad touchpad) {
+        if(isAndroid && !blocked) {
+            velocity.x = touchpad.getKnobPercentX()*getSpeed();
+            velocity.y = touchpad.getKnobPercentY()*getSpeed();
+        }
+
         setX(getX() + velocity.x * delta);
         setY(getY() + velocity.y * delta);
         if((up || down || left || right) && (velocity.x != 0 || velocity.y != 0)) {

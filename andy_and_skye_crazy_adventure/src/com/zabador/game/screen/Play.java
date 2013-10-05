@@ -132,12 +132,7 @@ public class Play implements Application, Screen, StartBattle, InputProcessor {
                 (player.getY() + player.getHeight() / 2) - 100, 0);
         camera.update();
 
-        if(isAndroid){
-            player.velocity.x = touchpad.getKnobPercentX()*player.getSpeed();
-            player.velocity.y = touchpad.getKnobPercentY()*player.getSpeed();
-        }
-
-        player.update(delta);
+        player.update(delta,isAndroid, touchpad);
         checkforBattle();
         checkForCollisions();
 
