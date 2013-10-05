@@ -12,10 +12,18 @@ import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
 import aurelienribon.tweenengine.TweenManager;
 
+import com.badlogic.gdx.Application;
+import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Graphics;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.LifecycleListener;
+import com.badlogic.gdx.Net;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
@@ -30,7 +38,13 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
+import com.badlogic.gdx.scenes.scene2d.ui.Touchpad.TouchpadStyle;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Base64Coder;
+import com.badlogic.gdx.utils.Clipboard;
 import com.zabador.game.StartBattle;
 import com.zabador.game.entities.Enemy;
 import com.zabador.game.entities.Player;
@@ -42,7 +56,7 @@ import com.zabador.game.ui.MainUi;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class Play implements Screen, StartBattle, InputProcessor{
+public class Play implements Application, Screen, StartBattle, InputProcessor {
 
     private TiledMap map;
     private OrthogonalTiledMapRenderer renderer;
@@ -63,7 +77,17 @@ public class Play implements Screen, StartBattle, InputProcessor{
     private int mapY = 0;
     private String mapFile;
     private Warp warpObject;
-
+    private boolean isDesktop;
+    // stuff for android
+    private boolean isAndroid;
+    private SpriteBatch batch;
+    private Stage stage;
+    private Skin touchpadSkin;
+    private Touchpad touchpad;
+    private TouchpadStyle touchpadStyle;
+    private Drawable touchBackground;
+    private Drawable touchKnob;
+    
     JSONObject jsonObject;
     JSONArray jsonArray;
 
@@ -76,7 +100,8 @@ public class Play implements Screen, StartBattle, InputProcessor{
     // loading a saved game
     public Play(Preferences prefs) {
         this.prefs = prefs;
-        this.mapName =  new String(Base64Coder.decodeString(prefs.getString("map")));
+        this.mapName = new String(Base64Coder.decodeString(prefs
+                .getString("map")));
         loading = true;
     }
 
@@ -107,24 +132,35 @@ public class Play implements Screen, StartBattle, InputProcessor{
                 (player.getY() + player.getHeight() / 2) - 100, 0);
         camera.update();
 
+        if(isAndroid){
+            player.velocity.x = touchpad.getKnobPercentX()*player.getSpeed();
+            player.velocity.y = touchpad.getKnobPercentY()*player.getSpeed();
+        }
+
         player.update(delta);
         checkforBattle();
         checkForCollisions();
 
         renderer.getSpriteBatch().begin();
-        if(!inBattle)
+        if (!inBattle)
             player.draw(renderer.getSpriteBatch());
         renderer.getSpriteBatch().end();
         mainui.draw();
+
+        if(isAndroid){
+           stage.act(Gdx.graphics.getDeltaTime());        
+           stage.draw();
+        }
     }
 
     private void checkforBattle() {
-        if(player.getStepsToEncounter() <= 0){
+        if (player.getStepsToEncounter() <= 0) {
             inBattle = true;
             player.up = player.down = player.left = player.right = false;
             player.velocity.x = 0;
             player.velocity.y = 0;
-            player.setStepsToEncounter(MathUtils.random(player.LOWBOUNDSTEPS, player.HIGHBOUNTSTEPS));
+            player.setStepsToEncounter(MathUtils.random(player.LOWBOUNDSTEPS,
+                    player.HIGHBOUNTSTEPS));
             goToBattle();
         }
 
@@ -132,107 +168,142 @@ public class Play implements Screen, StartBattle, InputProcessor{
 
     private void checkForCollisions() {
         float oldX = player.getX(), oldY = player.getY();
-        float tileWidth = collisionLayer.getTileWidth(), tileHeight = collisionLayer.getTileHeight();
+        float tileWidth = collisionLayer.getTileWidth(), tileHeight = collisionLayer
+                .getTileHeight();
         boolean warp = false;
         String portalName = null;
 
-        if(player.velocity.x < 0) {
+        if (player.velocity.x < 0) {
 
             try {
-                collisionX = collisionLayer.getCell((int)(player.getX()/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
-                    .getTile().getProperties().containsKey("blocked");
-            }catch(NullPointerException npe) { // player is off map
+                collisionX = collisionLayer
+                        .getCell(
+                                (int) (player.getX() / tileWidth),
+                                (int) ((player.getY() + player.getHeight() / 2) / tileHeight))
+                        .getTile().getProperties().containsKey("blocked");
+            } catch (NullPointerException npe) { // player is off map
                 collisionX = true;
             }
 
             // loop through portals to see if we need to warp
-            if(!warp){
-                for (int i = 0;i < portals.size();i++ ) {
+            if (!warp) {
+                for (int i = 0; i < portals.size(); i++) {
                     try {
-                        if(collisionLayer.getCell((int)(player.getX()/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
-                                .getTile().getProperties().containsKey(portals.get(i).getName())) {
+                        if (collisionLayer
+                                .getCell(
+                                        (int) (player.getX() / tileWidth),
+                                        (int) ((player.getY() + player
+                                                .getHeight() / 2) / tileHeight))
+                                .getTile().getProperties()
+                                .containsKey(portals.get(i).getName())) {
                             warp = true;
                             warpObject = portals.get(i);
                             break;
-                                }
-                    }catch(NullPointerException npe) {
+                        }
+                    } catch (NullPointerException npe) {
                         collisionX = true;
                     }
                 }
             }
 
-        }else if(player.velocity.x > 0) {
+        } else if (player.velocity.x > 0) {
             try {
-                collisionX = collisionLayer.getCell((int)((player.getX() + player.getWidth())/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
-                    .getTile().getProperties().containsKey("blocked");      
-            }catch(NullPointerException npe) { // player is off map
+                collisionX = collisionLayer
+                        .getCell(
+                                (int) ((player.getX() + player.getWidth()) / tileWidth),
+                                (int) ((player.getY() + player.getHeight() / 2) / tileHeight))
+                        .getTile().getProperties().containsKey("blocked");
+            } catch (NullPointerException npe) { // player is off map
                 collisionX = true;
             }
 
             // loop through portals to see if we need to warp
-            if(!warp){
-                for (int i = 0;i < portals.size();i++ ) {
+            if (!warp) {
+                for (int i = 0; i < portals.size(); i++) {
                     try {
-                        if(collisionLayer.getCell((int)((player.getX() + player.getWidth())/tileWidth), (int)((player.getY()+player.getHeight()/2)/tileHeight))
-                                .getTile().getProperties().containsKey(portals.get(i).getName())){
+                        if (collisionLayer
+                                .getCell(
+                                        (int) ((player.getX() + player
+                                                .getWidth()) / tileWidth),
+                                        (int) ((player.getY() + player
+                                                .getHeight() / 2) / tileHeight))
+                                .getTile().getProperties()
+                                .containsKey(portals.get(i).getName())) {
                             warp = true;
                             warpObject = portals.get(i);
                             break;
-                                }
-                    }catch(NullPointerException npe) { // player is off map
+                        }
+                    } catch (NullPointerException npe) { // player is off map
                         collisionX = true;
                     }
                 }
             }
         }
 
-        if(collisionX) {
+        if (collisionX) {
             player.setX(oldX);
             player.velocity.x = 0;
         }
 
-        if(player.velocity.y < 0) {
+        if (player.velocity.y < 0) {
             try {
-                collisionY = collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) (player.getY() / tileHeight))
-                    .getTile().getProperties().containsKey("blocked");
-            }catch(NullPointerException npe) { // player is off map
+                collisionY = collisionLayer
+                        .getCell(
+                                (int) ((player.getX() + player.getWidth() / 2) / tileWidth),
+                                (int) (player.getY() / tileHeight)).getTile()
+                        .getProperties().containsKey("blocked");
+            } catch (NullPointerException npe) { // player is off map
                 collisionY = true;
             }
 
             // loop through portals to see if we need to warp
-            if(!warp){
-                for (int i = 0;i < portals.size();i++ ) {
+            if (!warp) {
+                for (int i = 0; i < portals.size(); i++) {
                     try {
-                        if(collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) (player.getY() / tileHeight))
-                                .getTile().getProperties().containsKey(portals.get(i).getName())) {
+                        if (collisionLayer
+                                .getCell(
+                                        (int) ((player.getX() + player
+                                                .getWidth() / 2) / tileWidth),
+                                        (int) (player.getY() / tileHeight))
+                                .getTile().getProperties()
+                                .containsKey(portals.get(i).getName())) {
                             warp = true;
                             warpObject = portals.get(i);
                             break;
-                                }
-                    }catch(NullPointerException npe) { // player is off map
+                        }
+                    } catch (NullPointerException npe) { // player is off map
                         collisionY = true;
                     }
                 }
             }
 
-        }else if(player.velocity.y > 0) {
+        } else if (player.velocity.y > 0) {
             try {
-                collisionY = collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) ((player.getY() + player.getHeight()) / tileHeight))
-                    .getTile().getProperties().containsKey("blocked");
-            }catch(NullPointerException npe) { // player is off map
+                collisionY = collisionLayer
+                        .getCell(
+                                (int) ((player.getX() + player.getWidth() / 2) / tileWidth),
+                                (int) ((player.getY() + player.getHeight()) / tileHeight))
+                        .getTile().getProperties().containsKey("blocked");
+            } catch (NullPointerException npe) { // player is off map
             }
 
             // loop through portals to see if we need to warp
-            if(!warp){
-                for (int i = 0;i < portals.size();i++ ) {
+            if (!warp) {
+                for (int i = 0; i < portals.size(); i++) {
                     try {
-                        if(collisionLayer.getCell((int)((player.getX() + player.getWidth()/2) / tileWidth), (int) ((player.getY() + player.getHeight()) / tileHeight))
-                                .getTile().getProperties().containsKey(portals.get(i).getName())) {
+                        if (collisionLayer
+                                .getCell(
+                                        (int) ((player.getX() + player
+                                                .getWidth() / 2) / tileWidth),
+                                        (int) ((player.getY() + player
+                                                .getHeight()) / tileHeight))
+                                .getTile().getProperties()
+                                .containsKey(portals.get(i).getName())) {
                             warp = true;
                             warpObject = portals.get(i);
                             break;
-                                }
-                    }catch(NullPointerException npe) { // player is off map
+                        }
+                    } catch (NullPointerException npe) { // player is off map
                         collisionY = true;
                     }
                 }
@@ -240,13 +311,14 @@ public class Play implements Screen, StartBattle, InputProcessor{
 
         }
 
-        if(collisionY) {
+        if (collisionY) {
             player.setY(oldY);
             player.velocity.y = 0;
         }
 
-        if(warp) {
-            ((Game)Gdx.app.getApplicationListener()).setScreen(new Play(warpObject));
+        if (warp) {
+            ((Game) Gdx.app.getApplicationListener()).setScreen(new Play(
+                    warpObject));
         }
     }
 
@@ -255,16 +327,17 @@ public class Play implements Screen, StartBattle, InputProcessor{
         Tween.set(this, ScreenAccessor.ALPHA).target(1).start(tweenManager);
         System.out.println("after set");
         Tween.to(this, ScreenAccessor.ALPHA, 1f).target(0).delay(0)
-            .setCallback(new TweenCallback() {
-                @Override
-                public void onEvent(int type, BaseTween<?> source) {
-                    System.out.println("in onevent");
-                    int i = MathUtils.random(enemies.size() - 1);
-                    ((Game) Gdx.app.getApplicationListener())
-                .setScreen(new Battle(mapName, player, enemies.get(i)));
-                }
+                .setCallback(new TweenCallback() {
+                    @Override
+                    public void onEvent(int type, BaseTween<?> source) {
+                        System.out.println("in onevent");
+                        int i = MathUtils.random(enemies.size() - 1);
+                        ((Game) Gdx.app.getApplicationListener())
+                                .setScreen(new Battle(mapName, player, enemies
+                                        .get(i)));
+                    }
 
-            }).start(tweenManager);
+                }).start(tweenManager);
 
         System.out.println("after tween");
     }
@@ -272,6 +345,7 @@ public class Play implements Screen, StartBattle, InputProcessor{
     public SpriteBatch getSpriteBatch() {
         return renderer.getSpriteBatch();
     }
+
     @Override
     public void resize(int width, int height) {
 
@@ -279,8 +353,21 @@ public class Play implements Screen, StartBattle, InputProcessor{
         camera.viewportWidth = width;
         camera.update();
     }
+
     @Override
     public void show() {
+
+
+
+        switch (Gdx.app.getType()) {
+        case Android:
+            isAndroid = true;
+            break;
+        case Desktop:
+            isDesktop = true;
+            break;
+        }
+
 
         enemies = new ArrayList<Enemy>();
         portals = new ArrayList<Warp>();
@@ -290,73 +377,111 @@ public class Play implements Screen, StartBattle, InputProcessor{
 
         // build the array of enemies to pass to the player
         try {
-            JSONObject monstersFeed = new JSONObject(Gdx.files.internal("feeds/monster.json").readString());
+            JSONObject monstersFeed = new JSONObject(Gdx.files.internal(
+                    "feeds/monster.json").readString());
             JSONArray monsterArray = monstersFeed.getJSONArray("monsters");
-            for (int i = 0; i<monsterArray.length(); i++ ) {
+            for (int i = 0; i < monsterArray.length(); i++) {
                 JSONObject monster = monsterArray.getJSONObject(i);
-                enemies.add(new Enemy(monster.getString("name"), 
-                            monster.getInt("level"), 
-                            monster.getInt("attack"),
-                            monster.getInt("defense"),
-                            monster.getInt("exp"),
-                            monster.getInt("hp")));
+                enemies.add(new Enemy(monster.getString("name"), monster
+                        .getInt("level"), monster.getInt("attack"), monster
+                        .getInt("defense"), monster.getInt("exp"), monster
+                        .getInt("hp")));
             }
-        }catch(Exception e){System.out.println("Error getting feed " + e.getStackTrace());}
+        } catch (Exception e) {
+            System.out.println("Error getting feed " + e.getStackTrace());
+        }
 
         // build the array of portals on the map
         try {
             JSONObject mapObject = new JSONObject();
-            JSONObject mapsFeed = new JSONObject(Gdx.files.internal("feeds/maps.json").readString());
+            JSONObject mapsFeed = new JSONObject(Gdx.files.internal(
+                    "feeds/maps.json").readString());
             JSONArray mapsArray = mapsFeed.getJSONArray("maps");
-            for (int i = 0; i<mapsArray.length(); i++ ) {
-                if(mapsArray.getJSONObject(i).getString("name").equals(mapName)) {
+            for (int i = 0; i < mapsArray.length(); i++) {
+                if (mapsArray.getJSONObject(i).getString("name")
+                        .equals(mapName)) {
                     mapObject = mapsArray.getJSONObject(i);
                     break;
                 }
             }
             mapFile = mapObject.getString("file");
-            if(mapX == 0 && mapY == 0) {
+            if (mapX == 0 && mapY == 0) {
                 mapX = mapObject.getInt("X");
                 mapY = mapObject.getInt("Y");
             }
             JSONArray portalArray = mapObject.getJSONArray("portals");
-            for(int i = 0;i<portalArray.length();i++) {
+            for (int i = 0; i < portalArray.length(); i++) {
                 JSONObject warp = portalArray.getJSONObject(i);
-                portals.add(new Warp(warp.getString("name"),
-                            warp.getInt("mapX"),
-                            warp.getInt("mapY")));
+                portals.add(new Warp(warp.getString("name"), warp
+                        .getInt("mapX"), warp.getInt("mapY")));
 
             }
-        }catch(Exception e){System.out.println("Error getting feed " + e.getStackTrace());}
+        } catch (Exception e) {
+            System.out.println("Error getting feed " + e.getStackTrace());
+        }
 
+        SpriteBatch batch = new SpriteBatch();
         map = new TmxMapLoader().load(mapFile);
         collisionLayer = (TiledMapTileLayer) map.getLayers().get(0);
-
         renderer = new OrthogonalTiledMapRenderer(map);
+
 
         camera = new OrthographicCamera();
         //camera.zoom = .5f;
 
-        if(player == null){ // it is a brand new game
+        if (player == null) { // it is a brand new game
             player = new Player(new Sprite(new Texture("imgs/player.png")));
-            if(loading) { // load player from saved preferences
-                player.setPosition(Float.parseFloat(
-                            new String(Base64Coder.decodeString(prefs
-                                    .getString("playerX")))), Float.parseFloat(
-                            new String(Base64Coder.decodeString(prefs
-                                    .getString("playerY")))));
-            }else {
-                player.setPosition(mapX * collisionLayer.getTileWidth(), (collisionLayer.getHeight()-mapY) * collisionLayer.getTileHeight());
+            if (loading) { // load player from saved preferences
+                player.setPosition(Float.parseFloat(new String(Base64Coder
+                        .decodeString(prefs.getString("playerX")))), Float
+                        .parseFloat(new String(Base64Coder.decodeString(prefs
+                                .getString("playerY")))));
+            } else {
+                player.setPosition(
+                        mapX * collisionLayer.getTileWidth(),
+                        (collisionLayer.getHeight() - mapY)
+                                * collisionLayer.getTileHeight());
 
             }
-        }
-        else {// player has returned from a battle scene
+        } else {// player has returned from a battle scene
             inBattle = false;
-            player.setPosition(player.getX(),player.getY());
+            player.setPosition(player.getX(), player.getY());
         }
 
         // tell game where the input processor is
-        Gdx.input.setInputProcessor(this);
+        if(isDesktop){
+            Gdx.input.setInputProcessor(this);
+        }
+        
+        // display touchpad if running on android
+        if(isAndroid){
+            //Create a touchpad skin    
+            touchpadSkin = new Skin();
+            stage = new Stage();
+        
+            //Set background image
+            touchpadSkin.add("touchBackground", new Texture("ui/touchBackground.png"));
+            //Set knob image
+            touchpadSkin.add("touchKnob", new Texture("ui/touchKnob.png"));
+            //Create TouchPad Style
+            touchpadStyle = new TouchpadStyle();
+            //Create Drawable's from TouchPad skin
+            touchBackground = touchpadSkin.getDrawable("touchBackground");
+            touchKnob = touchpadSkin.getDrawable("touchKnob");
+            //Apply the Drawables to the TouchPad Style
+            touchpadStyle.background = touchBackground;
+            touchpadStyle.knob = touchKnob;
+            //Create new TouchPad with the created style
+            touchpad = new Touchpad(10, touchpadStyle);
+            //setBounds(x,y,width,height)
+            touchpad.setBounds(15, 15, 200, 200);
+
+            //Create a Stage and add TouchPad
+            stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true, renderer.getSpriteBatch());
+
+            stage.addActor(touchpad);            
+            Gdx.input.setInputProcessor(stage); 
+        }
 
         music = Gdx.audio.newMusic(Gdx.files.internal("sound/Zelda_Theme.mp3"));
         music.setLooping(true);
@@ -392,34 +517,35 @@ public class Play implements Screen, StartBattle, InputProcessor{
 
     @Override
     public boolean keyDown(int keycode) {
-        if(!inBattle) {
+        if (!inBattle) {
             switch (keycode) {
-                case Keys.W:
-                case Keys.UP:
-                    player.up = true;
-                    player.velocity.y = player.getSpeed();
-                    break;
-                case Keys.S:
-                case Keys.DOWN:
-                    player.down = true;
-                    player.velocity.y = -player.getSpeed();
-                    break;
-                case Keys.A:
-                case Keys.LEFT:
-                    player.left = true;
-                    player.velocity.x = -player.getSpeed();
-                    break;
-                case Keys.D:
-                case Keys.RIGHT:
-                    player.right = true;
-                    player.velocity.x = player.getSpeed();
-                    break;
-                case Keys.ESCAPE:
-                    ((Game)Gdx.app.getApplicationListener()).setScreen(new SaveScreen(mapName,player));
-                    break;
+            case Keys.W:
+            case Keys.UP:
+                player.up = true;
+                player.velocity.y = player.getSpeed();
+                break;
+            case Keys.S:
+            case Keys.DOWN:
+                player.down = true;
+                player.velocity.y = -player.getSpeed();
+                break;
+            case Keys.A:
+            case Keys.LEFT:
+                player.left = true;
+                player.velocity.x = -player.getSpeed();
+                break;
+            case Keys.D:
+            case Keys.RIGHT:
+                player.right = true;
+                player.velocity.x = player.getSpeed();
+                break;
+            case Keys.ESCAPE:
+                ((Game) Gdx.app.getApplicationListener())
+                        .setScreen(new SaveScreen(mapName, player));
+                break;
 
-                default:
-                    break;
+            default:
+                break;
             }
 
         }
@@ -429,29 +555,29 @@ public class Play implements Screen, StartBattle, InputProcessor{
     @Override
     public boolean keyUp(int keycode) {
         switch (keycode) {
-            case Keys.W:
-            case Keys.UP:
-                player.velocity.y = 0;
-                player.up = false;
-                break;
-            case Keys.S:
-            case Keys.DOWN:
-                player.down = false;
-                player.velocity.y = 0;
-                break;
-            case Keys.A:
-            case Keys.LEFT:
-                player.velocity.x = 0;
-                player.left = false;
-                break;
-            case Keys.D:
-            case Keys.RIGHT:
-                player.right = false;
-                player.velocity.x = 0;
-                break;
+        case Keys.W:
+        case Keys.UP:
+            player.velocity.y = 0;
+            player.up = false;
+            break;
+        case Keys.S:
+        case Keys.DOWN:
+            player.down = false;
+            player.velocity.y = 0;
+            break;
+        case Keys.A:
+        case Keys.LEFT:
+            player.velocity.x = 0;
+            player.left = false;
+            break;
+        case Keys.D:
+        case Keys.RIGHT:
+            player.right = false;
+            player.velocity.x = 0;
+            break;
 
-            default:
-                break;
+        default:
+            break;
         }
         return true;
     }
@@ -464,20 +590,17 @@ public class Play implements Screen, StartBattle, InputProcessor{
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        if(!inBattle) {
-            if(screenX < 200) {
+        if (!inBattle) {
+            if (screenX < 200) {
                 player.velocity.x = -player.getSpeed();
                 player.left = true;
-            }
-            else if(screenX > Gdx.graphics.getWidth()-200){
+            } else if (screenX > Gdx.graphics.getWidth() - 200) {
                 player.velocity.x = player.getSpeed();
                 player.right = true;
-            }
-            else if(screenY < 200) {
+            } else if (screenY < 200) {
                 player.velocity.y = player.getSpeed();
                 player.up = true;
-            }
-            else if(screenY > Gdx.graphics.getHeight()-200){
+            } else if (screenY > Gdx.graphics.getHeight() - 200) {
                 player.velocity.y = -player.getSpeed();
                 player.down = true;
             }
@@ -514,6 +637,144 @@ public class Play implements Screen, StartBattle, InputProcessor{
     public boolean scrolled(int amount) {
         // TODO Auto-generated method stub
         return false;
+    }
+
+    @Override
+    public void addLifecycleListener(LifecycleListener arg0) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void debug(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void debug(String arg0, String arg1, Throwable arg2) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void error(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void error(String arg0, String arg1, Throwable arg2) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void exit() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public ApplicationListener getApplicationListener() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Audio getAudio() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Clipboard getClipboard() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public com.badlogic.gdx.Files getFiles() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Graphics getGraphics() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Input getInput() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public long getJavaHeap() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public long getNativeHeap() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public Net getNet() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Preferences getPreferences(String arg0) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public ApplicationType getType() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public int getVersion() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public void log(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void log(String arg0, String arg1, Exception arg2) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void postRunnable(Runnable arg0) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void removeLifecycleListener(LifecycleListener arg0) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void setLogLevel(int arg0) {
+        // TODO Auto-generated method stub
+
     }
 
 }
